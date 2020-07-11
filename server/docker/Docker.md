@@ -1,0 +1,127 @@
+# Docker
+
+
+
+## 简介
+
+可以粗糙地理解为轻量级的虚拟机。但它不是虚拟机。
+
+![截屏2020-06-21下午4.44.58](https://image-hosting.jellyfishmix.com/20200621164704.png)
+
+- 虚拟机（VM）
+  - Hypervisor虚拟出了硬件层。
+- Docker
+  - 没有虚拟硬件层。
+  - 使用Host OS中的namespace, control group等做到将application分离。因此Docker是轻量级的，程序启动速度提升，内存占用减小。
+
+
+
+## 特点
+
+- docker解决了软件包装的问题，缓和了开发和运维环境的差异，使开发和运维可以用相似的语言进行沟通。从系统环境开始，自底至上打包应用。
+- 轻量级，对资源的有效隔离和管理。使用docker可以做到进程隔离，资源管理。
+- docker可复用，可以通过image被重用，不需要从0开始构建，通过image来交付环境，用tag来指定image的版本，进行版本化。
+- docker和持续集成、持续服务、持续部署、微服务等概念相辅相成。
+
+
+
+## 架构
+
+![截屏2020-06-21下午4.58.04](https://image-hosting.jellyfishmix.com/20200621165810.png)
+
+
+
+## 常用操作
+
+```bash
+// 运行镜像（images）
+docker run xxx(name)
+// 停止镜像
+docker stop xxx(IMAGE ID)
+// 查看本地镜像（images）
+docker images
+// 删除本地镜像（images）
+docker rmi xxx(IMAGE ID)
+// 查看container（正在运行的）
+docker ps
+// 查看container（所有的）
+docker ps -a
+// 删除container
+docker rm xxxx(container ID)
+// 拷贝
+docker cp index.xml xxx(IMAGE ID)://usr/share/nginx.html
+```
+
+
+
+| 命令          | 功能                          |
+| ------------- | ----------------------------- |
+| docker pull   | 获取image                     |
+| docker build  | 创建image                     |
+| docker images | 列出image                     |
+| docker run    | 运行container                 |
+| docker ps     | 列出container                 |
+| docker rm     | 删除container                 |
+| docker rmi    | 删除image                     |
+| docker cp     | 在host和container之间拷贝文件 |
+| docker commit | 保存改动为新的image           |
+| docker start  | 启动一个已经停止的container   |
+
+
+
+### 操作细节
+
+#### docker run
+
+![docker run 和 docker start的区别](https://image-hosting.jellyfishmix.com/20200625161706.png)
+
+`docker run`只有在第一次运行时使用，将镜像放到容器中，以后再次启动这个容器的时候，只需要使用命令`docker start`就可以。
+docker run相当于执行了两步操作：将镜像（Image）放到容器（Container）中，这一步过程叫做`docker create`，然后将容器启动，使之变成运行时容器（docker start）。
+
+```bash
+docker run -p 8080:80 -d daocloud.io/nginx
+```
+
+运行daocloud.io/nginx镜像。
+
+##### 参数
+
+- -p 把docker nginx这个image的80端口映射到本地8080端口。
+- -d 允许nginx这个程序直接返回。把nginx所在的container作为指挥进程来执行。
+
+##### 使用docker run命令来启动容器，docker在后台运行的标准操作包括：
+
+1. 检查本地是否存在指定的镜像，不存在则从公有仓库下载
+2. 使用镜像创建并启动容器
+3. 分配一个文件系统，并在只读的镜像层外面挂载一层可读可写层
+4. 从宿主主机配置的网桥接口中桥接一个虚拟接口道容器中去
+5. 从地址池分配一个ip地址给容器
+6. 执行用户指定的应用程序
+7. 执行完毕之后容器被终止
+
+
+
+#### docker start
+
+`docker start`的作用是：重新启动已经存在的容器。也就是说，如果使用这个命令，我们必须先要知道这个容器的ID、或者这个容器的名字，我们可以使用`docker ps -a`命令找到这个容器的信息。
+
+
+
+### docker cp
+
+```bash
+docker cp index.xml xxx(IMAGE ID)://usr/share/nginx.html
+```
+
+把本地OS当前目录的`index.xml`文件拷贝到`xxx(IMAGE ID)://usr/share/nginx.html`位置。
+
+docker在容器内所做的改动都是暂时的。stop容器后，容器所发生的改动不会被保存下来。
+
+如果想保存改动，需要执行：
+
+```bash
+docker commit -m 'some comments' xxxx(container ID) xxxx(name)
+```
+
+此操作会生成一个新的镜像。
+
