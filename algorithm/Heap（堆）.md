@@ -42,3 +42,11 @@ left child (i) = 2 * i + 1;
 right child (i) = 2 * i + 2;
 ```
 
+
+
+## Sift Up
+
+![截屏2020-07-14上午7.36.59](https://image-hosting.jellyfishmix.com/20200714073826.png)
+
+上浮操作，把新添加的元素逐级和和父亲节点比较，子节点大于父亲节点则交换。
+

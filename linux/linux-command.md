@@ -16,6 +16,14 @@ sudo halt
 mkdir xxx
 ```
 
+- `-p` 确保目录名称存在，不存在的就建一个。
+
+e.g.
+
+```bash
+mkdir -p /opt/settings/
+```
+
 
 
 ### 显示隐藏文件
