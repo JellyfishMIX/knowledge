@@ -13,3 +13,11 @@
 - 题目会创建三个索引：(`plat_order_id`)，(`plat_order_id`,  `plat_game_id`)，(`plat_order_id`,  `plat_game_id`, `plat_id`)。
 - 根据最左匹配原则，where语句必须要有`plat_order_id`才能调用索引（如果没有`plat_order_id`那么一个索引也调用不到），如果同时出现`plat_order_id`与`plat_game_id`则会调用两者的组合索引，如果同时出现三者则调用三者的组合索引。
 - 如出现了(`col1`, `col3`)，只使用了第一个索引(`col1`)。
+
+
+
+## 数据类型
+
+### 为什么mysql的数值不应设置为null，而是not null
+
+- B树索引是不会存储NULL值的，所以如果索引的字段可以为NULL，则此字段无法使用索引。
