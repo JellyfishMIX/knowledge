@@ -8,169 +8,21 @@ sudo halt
 
 
 
-## 存储
-
-### 新建文件夹
-
-```bash
-mkdir xxx
-```
-
-- `-p` 确保目录名称存在，不存在的就建一个。
-
-e.g.
-
-```bash
-mkdir -p /opt/settings/
-```
-
-
-
-### 显示隐藏文件
-
-```bash
-ls -la
-```
-
-
-
-### 复制、移动与删除
-
-####  文件复制命令cp
-
-```bash
-cp [-adfilprsu] 源文件(source) 目标位置(destination)
-cp [option] source1 source2 source3 ... directory
-```
-
-##### option
-
-- `-a` 是指archive的意思，也说是指复制所有的目录。
-- `-d` 若源文件为连接文件(link file)，则复制连接文件属性而非文件本身。
-- `-f` 强制(force)，若有重复或其它疑问时，不会询问用户，而强制复制。
-- `-i` 若目标文件(destination)已存在，在覆盖时会先询问是否真的操作。
-- `-l` 建立硬连接(hard link)的连接文件，而非复制文件本身。
-- `-p` 与文件的属性一起复制，而非使用默认属性。
-- `-r` 递归复制，用于目录的复制操作。
-- `-s` 复制成符号连接文件(symbolic link)，即“快捷方式”文件。
-- `-u` 若目标文件比源文件旧，更新目标文件。
-
-#### 文件移动命令mv
-
-```bash
-mv [-fiv] source destination
-```
-
-##### option
-
-- `-f` force，强制直接移动而不询问。
-- `-i` 若目标文件(destination)已经存在，就会询问是否覆盖。
-- `-u` 若目标文件已经存在，且源文件比较新，才会更新。
-
-####文件删除命令rm
-
-```bash
-rm [fir] 文件或目录
-```
-
-##### option
-
-- `-f` 强制删除。
-- `-i` 交互模式，在删除前询问用户是否操作。
-- `-r` 递归删除，常用在目录的删除。
-
-
-
-### 打包
-
-```bash
-tar -cvf <filename>.tar <filename>
-```
-
-此命令只是打包，不是压缩。
-
-#### option
-
-- `-c` 或 `--create` 建立新的备份文件。
-
-- `-r` 或 `--append` 新增文件到已存在的备份文件的结尾部分。
-
-- `-v` 显示指令执行过程。
-- `-f <备份文件>` 或 `--file=<备份文件>` 指定备份文件。
-- `-z` 或 `--gzip` 或 `--ungzip` 通过gzip指令处理备份文件。
-
-
-
-### 解压
-
-```bash
-tar -zxvf ./xxx -C /xxx
-```
-
-tar是用来建立，还原备份文件的工具程序，它可以加入，解开备份文件内的文件。
-
-- `-z` 通过gzip指令处理备份文件。
-- `-x` 从备份文件中还原文件。
-
-- `-v` 显示指令执行过程。
-
-- `-f` 指定备份文件。
-
-- `-C` <目的目录> 切换到指定目录。
-
-
-
-### tail 动态实时展示文件的变化过程
-
-tail命令可以动态实时展示文件的变化过程。
-
-**example**: 
-
-```bash
-tail -f error.2019-12-28.log
-```
-
-```bash
-tail -f info.2019-12-28.log
-```
-
-
-
-### 查看磁盘剩余空间
-
-```bash
-df -hl
-```
-
-### 查看当前文件夹大小
-
-```bash
-du -sh
-```
-
-###  列出当前文件夹下的所有文件夹及其大小，并按照文件夹大小排序
-
-```bash
-du -sh * | sort -n
-```
+## 进程，内存
 
 ### 查看内存占用情况
 
-``top``
+`top`
 
 退出查看
 
-``q``
+`q`
 
 ``htop``
 
 退出查看
 
-``q``
-
-
-
-## 进程
+`q`
 
 ### 查找进程名字
 
@@ -225,8 +77,6 @@ ps -ef | grep nginx
 | **nginx** | 30891 | 30890 | 0    | 13:36 | ?     | 00:00:00 | **nginx**: worker process                    |
 | root      | 31222 | 31202 | 0    | 17:46 | pts/0 | 00:00:00 | grep --color=auto **nginx**                  |
 
-
-
 ### 根据端口号查找进程
 
 ```bash
@@ -239,13 +89,26 @@ lsof（list open files）是一个列出当前系统打开文件的工具。任�
 
 -i	<条件> 列出符合条件的进程。（4、6、协议、:端口、 @ip ）
 
-
-
-列出所有开放的端口
+### 列出所有开放的端口
 
 ```bash
 netstat -tulpn
 ```
+
+### 关闭某个进程
+
+```bash
+kill -9 <PID>
+```
+
+- kill命令用于删除执行中的程序或工作。
+- 数字为信号。
+- kill可将指定的信号送至程序。预设的信号为SIGTERM(15)，可将指定程序终止。若仍无法终止该程序，可使用SIGKILL(9)信息尝试强制删除程序。
+- 程序或工作的PID可利用ps指令或jobs指令查看。
+
+- 默认的 `kill` 是 `kill -15`。
+  - `kill -15` 代表的信号为 `SIGTERM`，这是告诉进程"需要被关闭，请自行停止运行并退出"。
+  - 而 `kill -9` 代表的信号是 `SIGKILL`，表示进程被终止，需要立即退出。
 
 
 
@@ -255,19 +118,26 @@ systemctl
 
 /lib/systemd/
 
-
-
 ### 在后台持续运行进程
 
 ```bash
 nohup command > path 2>&1 &
 ```
 
-i.e.
+- `nohup` 表示不挂起地。
+
+- `command` 启动要执行的进程。
+- `> path` 表示把path作为标准输出路径。
+- `2>&1` `2`表示错误输出，`2>` 表示重定向操作错误提示信息，`&1`表示标准输出路径。意思是把错误输出也输出到刚刚定义的标准输出路径。
+- `&` 表示在后台运行。
+
+e.g.
 
 ```bash
 nohup java -jar ./sell-eureka-server.jar > /dev/null 2>&1 &
 ```
+
+- `/dev/null` 
 
 
 
@@ -279,15 +149,11 @@ nohup java -jar ./sell-eureka-server.jar > /dev/null 2>&1 &
 curl ifconfig.me
 ```
 
-
-
 ### 编辑路由表
 
 ```bash
 vi /etc/hosts
 ```
-
-
 
 ### weget 根据URL下载
 
@@ -300,8 +166,6 @@ wget 命令用来从指定的URL下载文件。wget非常稳定，它在带宽�
 **arguments**:
 
 -O –output-document=FILE	把文档写到FILE文件中
-
-
 
 ### 追踪域名路由
 
@@ -341,23 +205,17 @@ history
 cat /etc/shells
 ```
 
-
-
 ### zsh
 
 #### 基本
 
 MacOS自带zsh，Linux需要进行安装zsh。
 
-
-
 #### 安装zsh
 
 ```bash
 yum install zsh
 ```
-
-
 
 #### 切换为zsh
 
@@ -367,15 +225,11 @@ chsh -s /bin/zsh
 
 切换后需退出当前ssh连接，重新连接才可以生效。
 
-
-
 `~/.zshrc`中`ZSH_THEME`可以设置主题，例如：
 
 ```bash
 ZSH_THEME=”robbyrussell”
 ```
-
-
 
 #### on-my-zsh
 
@@ -407,4 +261,3 @@ openssl x509 -in tmp.crt -out tmp.pem
 
 ## 引用/参考
 
-[linux如何复制文件夹和移动文件夹](https://www.cnblogs.com/liaojie970/p/6746230.html)

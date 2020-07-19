@@ -69,10 +69,14 @@ config-client
 需要暴露/actuator/bus-refresh这个endpoint，设置为暴露全部endpoints
 
 ```yaml
+# 设置路由端点，查看json
+# actuator 启用所有的监控端点 “*”号代表启用所有的监控端点，可以单独启用，例如，health，info，metrics
+# spring boot 升为 2.0 后，为了安全，默认 Actuator 只暴露了2个端点，heath 和 info
 management:
   endpoints:
     web:
       exposure:
+        # 开放endpoint: /actuator/bus-refresh，使用curl -v -X POST "http://localhost:8080/actuator/bus-refresh"，即可刷新config-client配置（需要在config-server和config-client引入spring-cloud-starter-bus-amqp作为通信渠道）
         include: bus-refresh
         # 暴露全部endpoints
         # include: "*"
