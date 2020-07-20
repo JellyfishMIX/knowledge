@@ -4,7 +4,7 @@
 
 
 
-## String
+## string
 
 ### stringNew
 
@@ -32,7 +32,7 @@ SET "testString" "testValue99"
 
 
 
-## List
+## list
 
 ### listNew
 
@@ -96,9 +96,9 @@ LREM "testList" 0 "---VALUE_REMOVED_BY_HOPSONONE-PROCESS-SERVICE---"
 
 
 
-## Hash
+## hash
 
-hashNew
+### hashNew
 
 ```
 HLEN <key>
@@ -115,15 +115,26 @@ HSETNX "testHashNew" "testKey" "testValue"
 ### hashSave
 
 ```
-HDEL <key> <hashKey>
-HSET <key> <hashKey> <hashValue>
+HDEL <key> <originalHashKey>
+HSET <key> <newHashKey> <hashValue>
 ```
 
+如果只修改hashValue，originalHashKey和newHashKey可以相同。
+
 e.g.
+
+只修改hashValue
 
 ```
 HDEL "testHash" "xiaoWang"
 HSET "testHash" "xiaoWang" "23"
+```
+
+同时修改hashKey和hashValue
+
+```
+HDEL "testHash" "xiaoWang"
+HSET "testHash" "xiaoWang1" "24"
 ```
 
 ### hashAddRow
@@ -152,7 +163,7 @@ HDEL "testHash" "xiaowang"
 
 
 
-## Set
+## set
 
 ### setNew
 
@@ -176,8 +187,8 @@ SADD "testSetNew" "666"
 ### setSave
 
 ```
-SREM <key> <value>
-SADD <key> <value>
+SREM <key> <originalValue>
+SADD <key> <newValue>
 ```
 
 e.g.
@@ -185,5 +196,96 @@ e.g.
 ```
 SREM "testSet" "testValue"
 SADD "testSet" "testValue1"
+```
+
+### setAddRow
+
+```
+SADD <key> <value>
+```
+
+e.g.
+
+```
+SADD "testSet" "666"
+```
+
+### setDeleteRow
+
+```
+SREM <key> <value>
+```
+
+e.g.
+
+```
+SREM "testSet" "111"
+```
+
+
+
+## zset
+
+### zsetNew
+
+```
+ZCARD <key>
+ZADD <key> <score> <value>
+```
+
+e.g.
+
+```
+ZCARD "testZSet"
+ZADD "testZSet" 1 "testValue"
+```
+
+### zsetSave
+
+```
+ZREM <key> <originalValue>
+ZADD <key> <score> <newValue>
+```
+
+如果只修改score，originalValue和newValue可以相同。
+
+e.g.
+
+- 只修改score
+
+  ```
+  ZREM "testZSet" "testValue"
+  ZADD "testZSet" 10 "testValue"
+  ```
+
+- 同时修改score和value
+
+  ```
+  ZREM "testZSet" "testValue"
+  ZADD "testZSet" 10 "testValue1"
+  ```
+
+### zsetAddRow
+
+```
+ZADD <key> <score> <value>
+```
+
+e.g.
+
+```
+ZADD "testZSet" 99 "testValue1"
+```
+
+### zsetDeleteRow
+
+```
+ZREM <key> <value>
+```
+
+e.g.
+
+```
+ZREM "testZSet" "testValue1"
 ```
 
