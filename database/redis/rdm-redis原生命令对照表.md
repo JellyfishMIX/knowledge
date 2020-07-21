@@ -4,6 +4,36 @@
 
 
 
+## key
+
+### delete
+
+```
+DEL <key>
+```
+
+e.g.
+
+```
+DEL "testString"
+```
+
+### expire
+
+```
+EXPIRE <key> <timeout>
+```
+
+timeout单位为秒
+
+e.g.
+
+```
+EXPIRE "testList1" 10
+```
+
+
+
 ## string
 
 ### stringNew
