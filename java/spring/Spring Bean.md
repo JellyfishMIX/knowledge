@@ -151,3 +151,8 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
 }
 ```
 
+
+
+## Bean的注入
+
+Spring Bean的注入默认使用无参构造方法。所以，如果某些操作必须在类加载时完成，可以使用显示的默认无参构造方法中完成，否则会使用隐式的默认无参构造。
