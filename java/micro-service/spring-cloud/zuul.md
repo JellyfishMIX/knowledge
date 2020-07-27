@@ -116,3 +116,10 @@ public class ZuulConfig {
 
 nginx转发到多个zuul服务，nginx继续做负载均衡，和zuul互相取长补短。
 
+
+
+## zuul的跨域
+
+- 在被调用的类或方法上增加@CrossOrigin注解
+- 在Zuul里增加CorsFilter过滤器
+
