@@ -28,7 +28,7 @@ docker run -d --hostname my-rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3.8.5-
 
 - 15672
 
-  rabbitmq 客户端界面的端口
+  rabbitmq 管理界面的端口
 
 
 
