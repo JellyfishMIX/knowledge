@@ -213,6 +213,12 @@ history
 
 ## Shell
 
+### 查看当前使用的shell
+
+```bash
+echo $SHELL
+```
+
 ### 查看有哪些可用的shell
 
 ```bash
