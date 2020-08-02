@@ -18,3 +18,42 @@
 - 依赖隔离
 - 服务熔断
 - 监控（Hystrix Dashboard）
+
+
+
+## 使用
+
+```java
+@RequestMapping("/hystrix")
+@RestController
+@DefaultProperties
+public class HystrixController {
+    @HystrixCommand(fallbackMethod = "fallback")
+    @GetMapping("/product-list")
+    public String getProductInfoList() {
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
+    }
+
+    @HystrixCommand(commandProperties = {
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
+    })
+    @GetMapping("/product-list2")
+    public String getProductInfoList2() {
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
+    }
+
+    private String fallback() {
+        return "太拥挤了，请稍后再试";
+    }
+
+    private String defaultFallback() {
+        return "默认提示：太拥挤了，请稍后再试";
+    }
+}
+```
+
+- 当服务不可用时，会触发 `fallbackMethod` 所指定的方法。
+
+- 添加@DefaultProperties注解后，服务不可用会触发 `defaultFallback()` 方法。
