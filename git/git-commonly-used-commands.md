@@ -135,6 +135,50 @@ git commit --amend
 
 
 
+## 切换分支
+
+查看远程分支
+
+```bash
+git branch -a 
+```
+
+```
+~/mxnet$ git branch -a
+* master
+  remotes/origin/HEAD -> origin/master
+  remotes/origin/master
+  remotes/origin/nnvm
+  remotes/origin/piiswrong-patch-1
+  remotes/origin/v0.9rc1
+```
+
+查看本地分支
+
+```bash
+git branch
+```
+
+```
+~/mxnet$ git branch
+* master
+```
+
+切换本地分支
+
+```bash
+git checkout master
+```
+
+```
+＃ 切换为develop分支
+$ git checkout develop
+Switched to branch 'develop'
+Your branch is up-to-date with 'origin/develop'.
+```
+
+
+
 ## Git工作流程
 
 1. 对代码进行修改。
