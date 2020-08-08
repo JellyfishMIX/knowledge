@@ -23,6 +23,8 @@
 
 ## 使用
 
+### 服务降级
+
 ```java
 @RequestMapping("/hystrix")
 @RestController
@@ -57,3 +59,10 @@ public class HystrixController {
 - 当服务不可用时，会触发 `fallbackMethod` 所指定的方法。
 
 - 添加@DefaultProperties注解后，服务不可用会触发 `defaultFallback()` 方法。
+
+### 依赖隔离
+
+- docker通过仓闭模式实现进程隔离，使得容器之间互不影响
+
+- 而Hystrix使用仓闭模式实现的是线程池隔离，会为每个Hystrix command创建独立的线程池，这样就算某个Hystrix command包装下的服务出现延迟过高的情况，也只会对该依赖服务的调用产生影响，并不会影响其它服务。
+
