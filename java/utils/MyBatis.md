@@ -76,6 +76,27 @@ mybatis-generator是mybatis官方的一款generator。在mybatis-generator自动
 
 
 
+## MyBatis XML转义字符
+
+| 字符 | 转义     | 描述     |
+| ---- | -------- | -------- |
+| <    | &lt;     | 小于     |
+| <=   | &lt;=    | 小于等于 |
+| >    | &gt;     | 大于     |
+| >=   | &gt;=    | 大于等于 |
+| <>   | &lt;&gt; | 不等于   |
+| &    | &amp;    | 且       |
+| '    | &apos;   | 单引号   |
+| "    | &quot;   | 双引号   |
+
+此外，也可以用CDATA标志
+
+```
+<![CDATA[ 这里写你的sql ]]> 
+```
+
+
+
 ## 引用/参考
 
 [MyBatis面试题 - ThinkWon - CSDN](https://blog.csdn.net/ThinkWon/article/details/101292950)
