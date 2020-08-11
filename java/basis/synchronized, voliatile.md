@@ -1,4 +1,4 @@
-# synchronized
+# synchronized, voliatile
 
 
 
@@ -44,6 +44,22 @@ Java中每个对象都有一个锁，并且是唯一的。假设分配的一个�
 
 
 
+## synchronized与voliatile区别
+
+1. 使用：voliatile 用于修饰变量，synchronized可以修饰对象，类，方法，代码块，语句。
+
+2. 原子性：voliatile只保证变量的可见性，不能用于同步变量，即不保证原子性，多线程并发访问voliatile修饰的变量时也不会产生阻塞。synchronized是原子性的，只有锁定了变量的线程才能进入临界区，从而保证临界区的所有语句全部执行。多线程并发访问sychronized修饰的变量会产生阻塞。
+
+3. 机理：
+
+   当线程对volatile变量读时，会把工作内存中值置为无效。当线程对sychronized变量读时，会在该线程锁定变量时把工作内存中值置为无效。
+
+   当线程对voliatile变量写时，会把值刷新到主内存中。当线程对sychronized变量写时，会在变量解锁时把值刷新到主内存中。
+
+
+
 ## 引用/参考
 
 [使用synchronized修饰静态方法和非静态方法有什么区别 - riemann_ - CSDN](https://blog.csdn.net/riemann_/article/details/99245845)
+
+[Java多线程：线程间通信之volatile与sychronized - CieloSun的博客](https://www.cnblogs.com/cielosun/p/6650161.html)
