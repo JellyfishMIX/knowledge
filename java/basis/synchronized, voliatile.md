@@ -58,6 +58,30 @@ Java中每个对象都有一个锁，并且是唯一的。假设分配的一个�
 
 
 
+## synchronized特点
+
+1. 无论synchronized加在方法上还是对象上，其修饰的都是对象，而不是方法或者某个代码块代码语句。
+2. 每个对象只有一个锁与之相关联。
+3. 实现同步需要很大的系统开销来做控制，不要做无谓的锁定。
+
+
+
+## synchronized的作用域
+
+synchronized的作用域只有两种。实际上，synchronized直接作用于内存中的一个内存块，因此，可以通过锁定内存块来锁定一个实例变量或者锁定一个静态区域。
+
+1. 某个对象实例内
+
+synchronized aMethod(){}可以防止多个线程同时访问这个对象的synchronized方法，如果对象有多个synchronized方法，则只要一个线程访问了任何一个synchronized方法，其他线程不能同时访问任何一个该对象的synchronized方法(synchronized作用于对象，且每个对象只有一个锁)。
+
+显然，不同对象的synchronized方法则不会互相影响(synchronized作用于对象)。
+
+1. 某个类的范围
+
+又或者说作用于静态方法/静态代码块。synchronized static aMethod(){}防止多个线程同时访问这个类中的synchronized static方法，它可以对类的所有实例对象起作用。
+
+
+
 ## 引用/参考
 
 [使用synchronized修饰静态方法和非静态方法有什么区别 - riemann_ - CSDN](https://blog.csdn.net/riemann_/article/details/99245845)
