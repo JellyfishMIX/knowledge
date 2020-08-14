@@ -44,6 +44,112 @@ Java中每个对象都有一个锁，并且是唯一的。假设分配的一个�
 
 
 
+## volatile
+
+### 定义
+
+由volatile定义的变量其特殊性在于：
+
+一个线程对变量的写一定对之后对这个变量的读的线程可见。
+
+换言之
+
+一个线程对volatile变量的读一定能看见它之前最后一个线程对这个变量的写。
+
+### 机理
+
+volatile意味着可见性，在讲解volatile的机理前，我先给下面的这个例子：
+
+```Java
+package com.cielo.main;
+
+/**
+ * Created by 63289 on 2017/3/31.
+ */
+class MyThread extends Thread {
+    private boolean isRunning = true;
+    public boolean isRunning() {
+        return isRunning;
+    }
+    public void setRunning(boolean isRunning) {
+        this.isRunning = isRunning;
+    }
+    @Override
+    public void run() {
+        System.out.println("进入到run方法中了");
+        while (isRunning == true) {
+        }
+        System.out.println("线程执行完成了");
+    }
+}
+public class RunThread{
+    public static void main(String[] args) {
+        try {
+            MyThread thread = new MyThread();
+            thread.start();
+            Thread.sleep(1000);
+            thread.setRunning(false);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+在这个例子中，主线程启动了子线程，子线程成功进入run方法，输出”进入到run方法中”，只有由于isRunning==true，无限循环。此时，sleep一秒后的主线程想要改变isRunning的值，它将isRunning变量读取到它的内存空间进行修改后，写入主内存，但由于子线程一直在私有栈中读取isRunning变量，没有在主内存中读取isRunning变量，因此不会退出循环。
+
+如果我们把isRunning赋值行改为：
+
+private volatile boolean isRunning = true;
+将其用volatile修饰，则强制该变量从主内存中读取。
+
+这样我们也就明白了volatile的实现机理，即：
+
+1. 当一个线程要使用volatile变量时，它会直接从主内存中读取，而不使用自己工作内存中的副本。
+2. 当一个线程对一个volatile变量写时，它会将变量的值刷新到共享内存(主内存)中。
+
+### 特性：不会被重排序
+
+从Java内存模型一篇中，我们简单了解了重排序，这里不会被重排序主要指语句重排序。
+
+我们考虑到下面这个例子，有A,B两个线程
+
+线程A：加载配置文件，将配置元素初始化，之后标识初始化成功。
+
+```Java
+Map configOptions ;
+char[] configText;
+
+volatile boolean initialized = false;
+
+//线程A首先从文件中读取配置信息,调用process...处理配置信息,处理完成了将initialized 设置为true
+configOptions = new HashMap();
+configText = readConfigFile(fileName);
+processConfig(configText, configOptions);//负责将配置信息configOptions 成功初始化
+initialized = true;
+线程B：等待初始化标识为true，之后开始工作。
+
+while(!initialized)
+{
+    sleep();
+}
+
+//使用配置信息干活
+doSomethingWithConfig();
+```
+
+很简单的一个例子，在编译器中，如果进行重排序，则会有将initialized=true这一行先执行的可能，如果这件事发生的话，线程B就会先运行，进而使用了没有加载配置文件的Object。而如果initialized变量使用了volatile修饰，则编译器不会将该变量的相关代码进行重排序。（当然，这里的例子只是为了直观，实际情况编译器的重排序会更加复杂）
+
+### 非原子性
+
+使用volatile时，我们要清楚，volatile是非原子性的。
+
+原子性即是指，对于一个操作，其操作的内容只有全部执行/全不执行两个状态，不存在中间态。而volatile并不能锁定某组操作，防止其他线程的干扰，即没有规定原子性，因而volatile是非原子性的。或者说，volatile是非线程安全的。
+
+综上，如果我们想要使用一个原子性的修饰符来控制操作，即在操作变量时锁定变量，我们就需要另一个修饰词synchronized。
+
+
+
 ## synchronized与voliatile区别
 
 1. 使用：voliatile 用于修饰变量，synchronized可以修饰对象，类，方法，代码块，语句。
