@@ -49,6 +49,35 @@ I/O多路复用系统开销小，系统不必创建进程/线程，也不需要�
 
 目前支持I/O多路复用的系统调用包括select, pselect, poll, epoll，I/O多路复用即通过一种机制，一个进程可以监视多个描述符，一旦某个描述符准备就绪，就能够通知程序进行相应的读写操作。
 
+## select/poll
+
+select目前在所有平台支持，select函数监视文件操作符（将fd加入fdset），循环遍历fdset内的fd获取是否有资源的信息，若遍历完所有fdset内的fd后无资源可用，则select让该进程睡眠，直到有资源可用或超时则唤醒select进程，之后select继续循环遍历，找到就绪的fd后返回。select单个进程打开的fd有一定限制，由FD_SETSIZE设置，默认为1024（32位）和2048（64位）。
+
+poll与select的主要区别是不使用fdset，而是使用pollfd结构（本质链表结构），因而没有fd数目限制。
+
+poll和select共有的问题：
+
+- 每次select/poll找到就绪的fd，都需要把fdset/pollfd进行内存复制。
+- select/poll，都要在内核中遍历所有传递来的fd来寻找就绪的fd，随着监视的fd数量增加，效率也会下降。
+
+## epoll
+
+Linux 2.6内核中提出了epoll，epoll包括epoll_create,epoll_ctl,epoll_wait三个函数分别负责创建epoll，注册监听的事件和等待事件产生。
+
+- epoll每次注册新的事件到epoll中时，都会把所有fd拷贝进内核，而不是在epoll_wait时重复拷贝，保证每个fd在整个过程中仅拷贝一次。此外，epoll将内核与用户进程空间mmap到同一块内存，将fd消息存于该内存避免了不必要的拷贝。
+- epoll使用事件的就绪通知方式，通过epoll_ctl注册fd，一旦该fd就绪，内核就通过回调函数把就绪的fd加入一个就绪链表，唤醒epoll_wait进入睡眠的进程，epoll_wait通知消息给应用程序后再次睡眠。因此epoll不随着fd数目增加效率下降，只有活跃fd才会调用回调函数，效率与连接总数无关。
+- epoll没有最大并发连接的限制，1G内存约能监听10万个端口。
+
+epoll有LT模式和ET模式：
+
+- LT模式：epoll_wait检测到fd并通知后，应用程序可以不立刻处理，下次调用epoll_wait，会再次通知；
+- ET模式：应用程序必须立刻处理，下次调用，不会再通知此事件。ET模式效率更高，epoll工作在ET模式下必须使用非阻塞套接字。
+
+## 性能对比
+
+- 如果有大量的idle-connection或dead-connection，epoll效率比select/poll高很多。
+- 连接少连接十分活跃的情况下，select/poll的性能可能比epoll好。
+
 
 
 ## 引用/参考
