@@ -49,7 +49,7 @@ I/O多路复用系统开销小，系统不必创建进程/线程，也不需要�
 
 目前支持I/O多路复用的系统调用包括select, pselect, poll, epoll，I/O多路复用即通过一种机制，一个进程可以监视多个描述符，一旦某个描述符准备就绪，就能够通知程序进行相应的读写操作。
 
-## select/poll
+### select/poll
 
 select目前在所有平台支持，select函数监视文件操作符（将fd加入fdset），循环遍历fdset内的fd获取是否有资源的信息，若遍历完所有fdset内的fd后无资源可用，则select让该进程睡眠，直到有资源可用或超时则唤醒select进程，之后select继续循环遍历，找到就绪的fd后返回。select单个进程打开的fd有一定限制，由FD_SETSIZE设置，默认为1024（32位）和2048（64位）。
 
@@ -60,7 +60,7 @@ poll和select共有的问题：
 - 每次select/poll找到就绪的fd，都需要把fdset/pollfd进行内存复制。
 - select/poll，都要在内核中遍历所有传递来的fd来寻找就绪的fd，随着监视的fd数量增加，效率也会下降。
 
-## epoll
+### epoll
 
 Linux 2.6内核中提出了epoll，epoll包括epoll_create,epoll_ctl,epoll_wait三个函数分别负责创建epoll，注册监听的事件和等待事件产生。
 
@@ -73,10 +73,17 @@ epoll有LT模式和ET模式：
 - LT模式：epoll_wait检测到fd并通知后，应用程序可以不立刻处理，下次调用epoll_wait，会再次通知；
 - ET模式：应用程序必须立刻处理，下次调用，不会再通知此事件。ET模式效率更高，epoll工作在ET模式下必须使用非阻塞套接字。
 
-## 性能对比
+### 性能对比
 
 - 如果有大量的idle-connection或dead-connection，epoll效率比select/poll高很多。
 - 连接少连接十分活跃的情况下，select/poll的性能可能比epoll好。
+
+### Java的IO模式
+
+1. BIO：即传统Socket编程，线程数：客户端访问数为1：1，由于线程数膨胀后系统性能会急剧下降，导致了BIO的低效。
+2. 伪异步I/O：为了解决一个链路一个线程的问题，引入线程池处理多个客户端接入请求，可以灵活调配线程资源，可以限制线程数量防止膨胀，但底层仍是阻塞模型，高客户端访问时，会有通信阻塞的问题。
+3. NIO：Java NIO的核心为Channels, Buffers, Selectors。Channel有点像流，数据可以从Channel读到Buffer中，也可以从Buffer写到Channel内。而Selector则被用于多路复用，Java NIO可以把Channel注册到Selector上，之后，Selector会获取进入就绪状态的Channel（Selector进行循环的select/poll/epoll/IOCP操作），并进行后续操作。Selector是NIO实现的关键。Java NIO编程较为复杂。
+4. AIO：NIO.2引入的异步通道概念，不需要多路复用器对注册的通道轮询即可异步读写，简化了NIO的编程。（但是Netty作者称AIO的性能并不比NIO和epoll好）。
 
 
 
