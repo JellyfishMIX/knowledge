@@ -76,6 +76,14 @@ public class Test {
 
 
 
+## 使用lambda表达式进行Integer[]转int[]
+
+```java
+int[] intArr = list.stream().mapToInt(Integer::intValue).toArray();
+```
+
+
+
 ## 引用/参考
 
 [关于Java Lambda表达式看这一篇就够了](https://objcoding.com/2019/03/04/lambda/)
