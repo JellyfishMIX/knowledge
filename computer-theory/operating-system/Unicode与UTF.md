@@ -74,6 +74,8 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 
 
-## 参考
+## 引用/参考
+
+[Unicode 是不是只有两个字节，为什么能表示超过 65536 个字符？ - 梁海的回答 - 知乎](https://www.zhihu.com/question/22881537/answer/22947465)
 
 [R0b1n的回答-牛客网](https://www.nowcoder.com/profile/938383901/myFollowings/detail/12945719)
