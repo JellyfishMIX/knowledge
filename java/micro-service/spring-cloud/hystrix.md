@@ -4,7 +4,7 @@
 
 ## 雪崩效应
 
-微服务中某个服务不可用导致连续故障，最终造成整个系统不可用的情况。
+微服务中某个服务不可用导致级联故障，最终造成整个系统不可用的情况。
 
 ![image-20201003165925915](https://image-hosting.jellyfishmix.com/20201003165925.png)
 
@@ -44,7 +44,7 @@ B故障，A调用B请求不成功多次重试，造成资源耗尽，导致A不�
 ```java
 @RequestMapping("/hystrix")
 @RestController
-@DefaultProperties
+@DefaultProperties(defaultFallback = "/defaultFallback")
 public class HystrixController {
     @HystrixCommand(fallbackMethod = "fallback")
     @GetMapping("/product-list")
@@ -53,11 +53,26 @@ public class HystrixController {
         return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
     }
 
-    @HystrixCommand(commandProperties = {
-            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
-    })
+    /**
+     * Only add @HystrixCommand annotation.
+     * When the service degradation is triggered,
+     * the defaultFallback method specified in the @DefaultProperties annotation of the class of the method is called.
+     * 只添加@HystrixCommand注解，触发服务降级时会调用所处类的@DefaultProperties注解中指定的defaultFallback方法
+     * @return
+     */
+    @HystrixCommand
     @GetMapping("/product-list2")
     public String getProductInfoList2() {
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
+    }
+
+    @HystrixCommand(commandProperties = {
+            // 超时时间
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000")
+    })
+    @GetMapping("/product-list3")
+    public String getProductInfoList3() {
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
     }
@@ -78,7 +93,8 @@ public class HystrixController {
 
 ### 依赖隔离
 
-- docker通过仓闭模式实现进程隔离，使得容器之间互不影响
+- docker通过舱壁模式实现进程隔离，使得容器之间互不影响。
+- 而Hystrix使用舱壁模式实现的是线程池隔离，会为每个Hystrix command创建独立的线程池，这样就算某个Hystrix command包装下的服务出现延迟过高的情况，也只会对该依赖服务的调用产生影响，并不会影响其它服务。
 
-- 而Hystrix使用仓闭模式实现的是线程池隔离，会为每个Hystrix command创建独立的线程池，这样就算某个Hystrix command包装下的服务出现延迟过高的情况，也只会对该依赖服务的调用产生影响，并不会影响其它服务。
+
 
