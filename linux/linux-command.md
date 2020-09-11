@@ -153,6 +153,14 @@ nohup java -jar ./sell-eureka-server.jar > /dev/null 2>&1 &
 
 - `/dev/null` 
 
+### 关闭后台运行的进程
+
+```
+ps -ef | grep process-name
+(then you can get pid of the specified process in the output)
+kill -9 pid
+```
+
 
 
 ## 网络
