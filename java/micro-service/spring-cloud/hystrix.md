@@ -161,4 +161,4 @@ public class HystrixController {
   </dependency>
   ```
 
-- Annotate the startup class with @EnableHystrixDashboard
+- Annotate the startup class with @EnableHystrixDashboar
