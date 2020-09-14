@@ -108,7 +108,7 @@ public class ZuulConfig {
 
 
 
-## zuul的高可用
+## zuul 的高可用
 
 - 多个zuul节点注册到Eureka Server
 
@@ -118,8 +118,30 @@ nginx转发到多个zuul服务，nginx继续做负载均衡，和zuul互相取�
 
 
 
-## zuul的跨域
+## zuul 的跨域
 
 - 在被调用的类或方法上增加@CrossOrigin注解
 - 在Zuul里增加CorsFilter过滤器
+
+
+
+## zuul 的超时问题
+
+The first access after zuul service is started may have a timeout problem because zuul uses a lazy loading mechanism.
+
+zuul  uses hystrix dependency, you can set the timeout through hystrix properties in application.yml / bootstrap.yml.
+
+e.g.
+
+```java
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 3000
+```
+
+
 
