@@ -19,8 +19,9 @@
 ## Docker思想
 
 - 集装箱
-  - 我们在不同机器上搬运程序的时候，有可能少发送了配置文件等，导致不能运行，程序散乱。按照标准放进集装箱，帮助标准化装配。
-
+  
+- 我们在不同机器上搬运程序的时候，有可能少发送了配置文件等，导致不能运行，程序散乱。按照标准放进集装箱，帮助标准化装配。
+  
 - 标准化
 
   - 运输方式
@@ -71,6 +72,56 @@
 
 
 
+## Docker核心技术
+
+- image 集装箱
+- repository 超级码头
+- container 运行程序的地方
+
+docker去仓库把image拉到本地
+
+### image
+
+镜像可以理解为一个集装箱，本质是一系列文件，可以包括应用程序的文件，也包括应用运行环境的文件。
+
+使用了linux存储技术unix fx（联合存储技术），是一种分层的文件系统，可以将不同的目录，挂载到同一个虚拟文件系统下。
+
+![image-20201016172949546](https://image-hosting.jellyfishmix.com/20201016172949.png)
+
+各层：
+
+容器相关
+
+自己添加的具体文件
+
+具体的操作系统
+
+最下层：操作系统的引导
+
+### container
+
+容器的本质是一个进程。container 和虚拟机的区别是：caontiner 的文件系统是一层一层的，并且下面的层都是 read only，只有最上面的一层是可写的。
+
+container 在运行过程中如果要写入一个 image中的文件，因为 image 中的每一层都是read only的，所以在写文件前，会把此文件拷入最上层，再从最上层中对此文件进行修改。我们的应用读取一个文件时，会优先从顶层读取，如果顶层没有再去下层读取。
+
+由于容器的最上层是可以修改的，而 image 是不可以修改的，这样可以保证同一个 image 可以生成多个 container 独立运行，container 之间不会互相影响。
+
+### repository
+
+存储各种 image 的超级码头。
+
+#### famous repository
+
+hub.docker.com
+
+c.163.cn
+
+### interal repository
+
+对于比较私密的 image 需求，可以搭建私有仓库。
+
+
+
 ## 特点
 
 - docker解决了软件包装的问题，缓和了开发和运维环境的差异，使开发和运维可以用相似的语言进行沟通。从系统环境开始，自底至上打包应用。
@@ -85,4 +136,48 @@
 ![截屏2020-06-21下午4.58.04](https://image-hosting.jellyfishmix.com/20200621165810.png)
 
 
+
+## Docker command
+
+1.
+
+```
+docker pull [OPTIONS] NAME[:TAG]
+```
+
+从仓库拉取一个 image。
+
+[OPTIONS] 指定拉取时的参数。
+
+[:TAG]指定拉取的版本，如果不填默认为 latest。
+
+2.
+
+```
+docker images [OPTIONS] [REPOSITORY[:TAG]]
+```
+
+查看本机有哪些 images。
+
+[OPTIONS] 指定命令的参数。
+
+[REPOSITORY[:TAG]] 可以指定仓库:版本的 image。
+
+3.
+
+```
+docker run [OPTIONS] IMAGE[:TAG] [COMMAND] [ARG...]
+```
+
+[OPTIONS] 指定命令的参数。
+
+[:TAG] 指定的版本。
+
+[COMMAND]
+
+
+
+## 引用/参考
+
+[第一个docker化的java应用 - 刘果国 - 慕课网](https://www.imooc.com/learn/824)
 
