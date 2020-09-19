@@ -171,9 +171,47 @@ docker run [OPTIONS] IMAGE[:TAG] [COMMAND] [ARG...]
 
 [OPTIONS] 指定命令的参数。
 
+[OPTIONS]加 `-d`：后台运行。
+
+[OPTIONS]加 `-p`：映射到host机器的某个端口。[host port]:[docker interal port]e.g.: `-p 8080:80`。
+
+[OPTIONS]加 `-P`：把所有docker interal的端口，一对一映射到host机器的随机端口。
+
 [:TAG] 指定的版本。
 
-[COMMAND]
+4.
+
+```
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+```
+
+Run a command in a running container.
+
+Commonly used parameters:
+
+-i: 保证输入有效。
+
+-t: 分配一个伪终端。
+
+
+
+## Docker command flow chart
+
+![image-20201019181509114](https://image-hosting.jellyfishmix.com/20201019181509.png)
+
+## Docker network
+
+### 网络类型
+
+Bridge模式
+
+Host模式
+
+None模式
+
+### 端口映射
+
+docker内的端口和host机器做映射。
 
 
 
