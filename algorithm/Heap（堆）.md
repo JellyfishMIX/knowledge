@@ -50,11 +50,14 @@ left child (i) = 2 * i + 1;
 right child (i) = 2 * i + 2;
 ```
 
-
-
-## Sift Up
+### Sift Up
 
 ![截屏2020-07-14上午7.36.59](https://image-hosting.jellyfishmix.com/20200714073826.png)
 
 上浮操作，把新添加的元素逐级和和父亲节点比较，子节点大于父亲节点则交换。
 
+### Sift Down
+
+![截屏2020-09-20下午11.44.07](https://image-hosting.jellyfishmix.com/20200920234431.png)
+
+下沉操作。父结点依次和左右孩子比较，与左右孩子中最大的那个进行替换。
