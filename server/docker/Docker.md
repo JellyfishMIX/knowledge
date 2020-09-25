@@ -193,6 +193,36 @@ Commonly used parameters:
 
 -t: 分配一个伪终端。
 
+5.
+
+```
+docker build -t [NAME]:[TAG] [Dockerfile path]
+```
+
+构建一个docker image
+
+-t：指定一个 [NAME]:[TAG] 给构建后的 image。
+
+[Dockerfile path]： the directory where the Dockerfile is located.
+
+
+
+## Dockerfile
+
+```dockerfile
+from hub.c.163.com/library/tomcat
+
+MAINTAINER liuguoguo xxx@163.com
+
+COPY jpress.war /usr/local/tomcat/webapps
+```
+
+上述过程：
+
+1. 指定基础镜像。
+2. 写入所有者的信息进 image。
+3. 把 jpress.war 拷贝进 docker interal path /usr/local/tomcat/webapps 中。
+
 
 
 ## Docker command flow chart
