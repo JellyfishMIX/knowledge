@@ -98,3 +98,46 @@ public class HystrixController {
 
 
 
+## 服务熔断
+
+熔断器状态机
+
+![state](https://image-hosting.jellyfishmix.com/20201003234909.png)
+
+
+
+滚动时间窗口：断路器在关闭状态时，统计一些请求和错误数据，以确定是否需要打开时，有时间范围（即隔一段时间统计一次），此时间范围被称为"时间窗口"。
+
+当断路器打开，对主逻辑进行熔断后，会启动一个休眠时间窗，在此时间窗内，降级逻辑临时成为主逻辑。休眠时间窗到期，断路器进入半开状态，释放一次请求到原来的主逻辑上，如果此次请求正常返回，断路器闭合，主逻辑恢复。如果此次请求依然有问题，断路器将进入打开状态，休眠时间窗重新计时。
+
+e.g.
+
+```java
+@RequestMapping("/hystrix")
+@RestController
+@DefaultProperties(defaultFallback = "/defaultFallback")
+public class HystrixController {
+    @HystrixCommand(commandProperties = {
+            // 开启熔断
+            @HystrixProperty(name = "circuitBreaker.enable", value = "true"),
+            // 滚动时间窗口中，断路器的进行统计的最小请求数
+            @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),
+            // 休眠时间窗到期时间
+            @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000"),
+            // 滚动时间窗口中，断路器打开的错误百分比条件
+            @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "60")
+    })
+    @GetMapping("/product-list4")
+    public String getProductInfoList4() {
+        RestTemplate restTemplate = new RestTemplate();
+        return restTemplate.getForObject("http://localhost:8082/product/list", String.class);
+    }
+
+    private String defaultFallback() {
+        return "默认提示：太拥挤了，请稍后再试";
+    }
+}
+```
+
+关于熔断器（circuit breaker），详细可以阅读Martin Fowler的文章：[CircuitBreaker](https://martinfowler.com/bliki/CircuitBreaker.html)
+
