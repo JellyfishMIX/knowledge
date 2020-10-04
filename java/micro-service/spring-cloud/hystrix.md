@@ -141,3 +141,24 @@ public class HystrixController {
 
 关于熔断器（circuit breaker），详细可以阅读Martin Fowler的文章：[CircuitBreaker](https://martinfowler.com/bliki/CircuitBreaker.html)
 
+
+
+## Hystrix Dashboard
+
+- import two dependency
+
+  ```xml
+  <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-hystrix-dashboard</artifactId>
+      <version>1.4.7.RELEASE</version>
+  </dependency>
+  <!-- 如果已经有了，不需要再引入。例如spring-cloud-starter-stream-rabbit中含有此dependency -->
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <version>2.3.1.RELEASE</version>
+  </dependency>
+  ```
+
+- Annotate the startup class with @EnableHystrixDashboard
