@@ -41,6 +41,16 @@ eureka.instance.prefer-ip-address=true
 
 PS：当 `eureka.instance.ip-address` 和 `eureka.instance.prefer-ip-address` 都配置时，优先前者！
 
+### 2.
+
+# eureka在阿里服务器中不能获取正确的公网ip
+
+个别服务器，比如虚拟服务器等，很多网关网卡做了很多映射或者很多虚拟网卡，容易导致eureka 客户端不能获取到正确的公网ip地址，容易直接获取局域网IP，导致服务注册不到eureka服务端。
+
+这种情况，把相应服务的公网ip 在配置文件中写固定。
+
+或在eureka中使用域名来指定服务。
+
 
 
 ##Citation/Reference
