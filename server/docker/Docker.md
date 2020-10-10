@@ -193,6 +193,14 @@ Commonly used parameters:
 
 -t: 分配一个伪终端。
 
+e.g.
+
+使用bash进入一个 container
+
+```
+docker exec -it [container_id] /bin/bash
+```
+
 5.
 
 ```
