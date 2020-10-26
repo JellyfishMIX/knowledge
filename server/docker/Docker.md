@@ -213,6 +213,14 @@ docker build -t [NAME]:[TAG] [Dockerfile path]
 
 [Dockerfile path]： the directory where the Dockerfile is located.
 
+6.
+
+```
+docker inspect image
+```
+
+see image details
+
 
 
 ## Dockerfile
