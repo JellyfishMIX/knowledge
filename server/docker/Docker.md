@@ -241,6 +241,38 @@ COPY jpress.war /usr/local/tomcat/webapps
 
 
 
+## Docker 更换镜像源
+
+不同版本的docker更换镜像的方法不一样，这里用的docker18版本。
+
+查看版本命令
+
+```
+docker --version
+```
+
+在/etc/docker/目录下新建daemon.json文件，如果有就修改
+
+```
+/etc/docker/daemon.json
+```
+
+在daemon.json文件添加如下内容：
+
+```
+{
+  "registry-mirrors": ["https://registry.docker-cn.com"]
+}
+```
+
+然后重启
+
+```bash
+systemctl restart docker.service
+```
+
+
+
 ## Docker command flow chart
 
 ![image-20201019181509114](https://image-hosting.jellyfishmix.com/20201019181509.png)
@@ -257,7 +289,7 @@ None模式
 
 ### 端口映射
 
-docker内的端口和host机器做映射。
+docker内的端口和host机器做映射
 
 
 

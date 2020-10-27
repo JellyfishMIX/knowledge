@@ -33,7 +33,7 @@ ERROR: Rancher must be ran with the --privileged flag when running outside of Ku
 大意是：在k8s外运行rancher 需要 --privileged 启动参数。改成：
 
 ```
-sudo docker run --privileged -d --restart=unless-stopped -p 80:80 -p 80:443 rancher/rancher
+sudo docker run -d --privileged --restart=unless-stopped -p 80:80 -p 443:443 rancher/rancher
 ```
 
 --privileged 作用是给予 container 中的 root 用户真正的 root 权限。
