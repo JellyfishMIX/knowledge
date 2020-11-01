@@ -309,6 +309,16 @@ docker内的端口和host机器做映射
 
 
 
+## Docker Machine
+
+Docker Machine 是 Docker 官方编排（Orchestration）项目之一，负责在多种平台上快速安装 Docker 环境。
+
+Docker Machine 是一个工具，它允许你在虚拟宿主机上安装 Docker Engine ，并使用 docker-machine 命令管理这些宿主机。你可以使用 Machine 在你本地的 Mac 或 Windows box、公司网络、数据中心、或像 AWS 或 Digital Ocean 这样的云提供商上创建 Docker 宿主机。
+
+使用 docker-machine 命令，你可以启动、审查、停止和重新启动托管的宿主机、升级 Docker 客户端和守护程序、并配置 Docker 客户端与你的宿主机通信。
+
+
+
 ## 引用/参考
 
 [第一个docker化的java应用 - 刘果国 - 慕课网](https://www.imooc.com/learn/824)
