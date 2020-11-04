@@ -245,6 +245,19 @@ du -sh * | sort -n
 
 
 
+## vi
+
+### 查找
+
+当你用vi打开一个文件后，因为文件太长，如何才能找到你所要查找的关键字呢？ 
+在vi里可没有菜单-〉查找。
+
+不过没关系，你在命令模式下敲斜杆( / )这时在状态栏（也就是屏幕左下脚）就出现了 “/” 然后输入你要查找的关键字敲回车就可以了。
+如果你要继续查找此关键字，敲字符 n 就可以继续查找了。
+敲字符N（大写N）就会向前查询。
+
+
+
 ## 引用
 
 [linux如何复制文件夹和移动文件夹](https://www.cnblogs.com/liaojie970/p/6746230.html)
@@ -252,3 +265,5 @@ du -sh * | sort -n
 [shell程序中 2> /dev/null 代表什么意思？ - 裕用ID的回答 - 知乎](https://www.zhihu.com/question/53295083/answer/135258024)
 
 [Linux学习笔记（二）：什么是挂载？mount的用处在哪？ - 闻人翎悬 - CSDN](https://blog.csdn.net/qq_39521554/article/details/79501714)
+
+[Linux 如何在 vi 里搜索关键字 - 蝈蝈俊 - CSDN](https://blog.csdn.net/ghj1976/article/details/6066069)
