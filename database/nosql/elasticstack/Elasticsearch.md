@@ -34,9 +34,7 @@ bin/elasticsearch -Ehttp.port=19200
 
 ### 默认端口
 
-```
 localhost:9200
-```
 
 
 
@@ -284,6 +282,16 @@ GET /account/_doc/_search
   }
 }
 ```
+
+
+
+## Elasticsearch Ingest Node
+
+新增的 node 类型
+
+在数据写入 elasticsearch 前对数据进行转换
+
+pipeline API
 
 
 
