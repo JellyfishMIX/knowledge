@@ -74,8 +74,17 @@ UTF-8 使用一到四个字节来编码一个码点。从 0 到 127 的这些码
 
 
 
+## Bom
+
+BOM（Byte Order Mark），字节顺序标记，出现在文本文件头部，Unicode编码标准中用于标识文件是采用哪种格式的编码。
+
+
+
 ## 引用/参考
 
 [Unicode 是不是只有两个字节，为什么能表示超过 65536 个字符？ - 梁海的回答 - 知乎](https://www.zhihu.com/question/22881537/answer/22947465)
 
 [R0b1n的回答-牛客网](https://www.nowcoder.com/profile/938383901/myFollowings/detail/12945719)
+
+[BOM（字节顺序标记(ByteOrderMark)） - 百度百科](https://baike.baidu.com/item/BOM/2790364)
+
