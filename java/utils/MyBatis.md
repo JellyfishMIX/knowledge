@@ -97,6 +97,37 @@ mybatis-generator是mybatis官方的一款generator。在mybatis-generator自动
 
 
 
+## @MapperScan
+
+Mybatis使用了代理类来生成执行方法，为了告诉mybatis哪些是需要生成代理类的Mapper类，需要在Mapper类上面添加注解 @Mapper。
+
+通过使用 @MapperScan 可以指定要扫描的Mapper类的包的路径，比如:
+
+```java
+@SpringBootApplication
+// 添加对mapper包扫描
+@MapperScan("com.lz.water.monitor.mapper")
+public class Application {
+ 	public static void main(String[] args) {
+ 		SpringApplication.run(Application.class, args);
+ 	}
+}
+```
+
+使用@MapperScan注解多个包：
+
+```java
+@SpringBootApplication  
+@MapperScan({"com.kfit.demo","com.kfit.user"})  
+public class App {  
+    public static void main(String[] args) {  
+       SpringApplication.run(App.class, args);  
+    }  
+} 
+```
+
+
+
 ## 引用/参考
 
 [MyBatis面试题 - ThinkWon - CSDN](https://blog.csdn.net/ThinkWon/article/details/101292950)
@@ -106,3 +137,5 @@ mybatis-generator是mybatis官方的一款generator。在mybatis-generator自动
 [mybatis中的#和$的区别 ？ - 叶锦昌的回答 - 知乎 ](https://www.zhihu.com/question/26914370/answer/51095713)
 
 [mybatis中的#和$的区别 ？ - 侯云飞的回答 - 知乎](https://www.zhihu.com/question/26914370/answer/150328023)
+
+[@MapperScan注解 - 迷彩_风情 - CSDN](https://blog.csdn.net/u013059432/article/details/80239075)
