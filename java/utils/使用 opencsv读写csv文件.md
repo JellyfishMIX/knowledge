@@ -27,12 +27,12 @@
     <version>4.6</version>
 </dependency>
 
-<!--lombok-->
+<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 <dependency>
     <groupId>org.projectlombok</groupId>
     <artifactId>lombok</artifactId>
     <version>1.18.12</version>
-</dependency> 
+</dependency>
 ```
 
 
