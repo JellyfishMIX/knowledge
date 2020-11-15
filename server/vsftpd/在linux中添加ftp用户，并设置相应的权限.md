@@ -32,6 +32,8 @@ usermod -d /test test
 userdel -r test
 ```
 
+vsftpd.user_list：位于 /etc/vsftpd 目录下。该文件里的用户账户在默认情况下也不能访问FTP服务器，仅当 vsftpd .conf 配置文件里启用 userlist_enable=NO 选项时才允许访问。
+
 ### 限制用户只能访问/home/test，不能访问其他路径
 
 修改 /etc/vsftpd/vsftpd.conf 如下：
@@ -45,7 +47,15 @@ chroot_list_file=/etc/vsftpd/chroot_list
 
 编辑 /etc/vsftpd/chroot_list 文件，将受限制的用户添加进去，每个用户名一行
 
-**改完配置文件，不要忘记重启vsFTPd服务器**
+从2.3.5之后，vsftpd增强了安全检查，如果用户被限定在了其主目录下，则该用户的主目录不能再具有写权限了！如果检查发现还有写权限，就会报该错误。
+
+ 要修复这个错误，可以用命令 chmod a-w /home/user 去除用户主目录的写权限，注意把目录替换成你自己的。或者可以在 vsftpd 的配置文件中显式地添加： 
+
+```
+allow_writeable_chroot=YES
+```
+
+**改完配置文件，不要忘记重启vsftp服务器**
 
 ```bash
 systemctl start vsftpd.service
@@ -60,6 +70,8 @@ usermod -s /usr/bin/passwd test
 
 
 
-## 转自
+## 引用/参考
 
 [在linux中添加ftp用户，并设置相应的权限 - Reibin - 博客园](https://www.cnblogs.com/bienfantaisie/archive/2011/12/04/2275203.html)
+
+[vsftp 遇到错误 500 OOPS: vsftpd: refusing to run with writable root inside chroot() -  wi100sh - 博客园](https://www.cnblogs.com/wi100sh/p/4542819.html)

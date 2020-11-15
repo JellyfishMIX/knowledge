@@ -32,6 +32,7 @@ HTTP 状态码表示特定 HTTP 请求是否已成功完成，由 [section 10 of
 | 403    | Forbidden             | 服务器已经理解请求，但是拒绝执行它。                         |
 | 404    | Not Found             | 服务器找不到请求的资源。                                     |
 | 405    | Method Not Allowed    | 禁用请求中指定的方法。                                       |
+| 421    | Misdirected Request   | 该请求针对的是无法产生响应的服务器。 这可以由服务器发送，该服务器未配置为针对包含在请求 URI 中的方案和权限的组合产生响应。 |
 | 500    | Internal Server Error | 服务器内部错误，不知道如何处理。                             |
 | 502    | Bad Gateway           | 前面的网关代理服务器联系不到后端的服务器。                   |
 | 503    | Service Unavailable   | 服务器没有准备好处理请求。 常见原因是服务器因维护或重载而停机。 |
