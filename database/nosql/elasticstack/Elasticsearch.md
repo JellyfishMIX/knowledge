@@ -89,13 +89,58 @@ localhost:9200
 
   文档的属性。
 
+- document version
+
+  表示文档被修改过几次。
+
 - Query DSL 
 
   Elasticsearch 查询语法。
 
 
 
-## Elasticsearch CRUD
+##Elasticsearch CRUD
+
+### 查询文档 API
+
+搜索所有文档，使用 _search，如下：
+
+```
+GET /test_index/doc/_search
+
+or
+
+GET /test_index/doc/_search
+{
+	"query": {
+		"term": {
+			"_id": "1"
+		}
+	}
+}
+```
+
+![image-20201206095103886](https://image-hosting.jellyfishmix.com/20201206095103.png)
+
+### 批量创建 document API
+
+es 允许一次创建多个文档，从而减少网络传输开销，提升写入速率。
+
+- endpoint 为 _bulk，如下：
+
+  ![image-20201206095609316](https://image-hosting.jellyfishmix.com/20201206095609.png)
+
+### 批量查询 document API
+
+es 允许一次查询多个文档
+
+- endpoint 为 _mget，如下：
+
+  ![image-20201206100230554](https://image-hosting.jellyfishmix.com/20201206100230.png)
+
+
+
+## Elasticsearch CRUD （杂乱）
 
 - Create 创建文档（PUT）
 - Read 读取文档（GET）
