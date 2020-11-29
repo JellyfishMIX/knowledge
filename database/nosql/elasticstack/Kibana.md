@@ -32,3 +32,11 @@ DevTools 开发者工具
 
 Management 配置
 
+
+
+## 使用
+
+```bash
+bin/kibana
+```
+
