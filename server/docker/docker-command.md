@@ -263,3 +263,21 @@ docker inspect image
 ```
 
 see image details
+
+
+
+## Dockerfile
+
+可以在项目根目录中，创建一个 docker.sh 自动化运行一系列 docker 构建、推送至仓库等命令。
+
+如果报错:
+
+Permission denied
+
+说明没有权限。
+
+解决办法： 
+
+修改该文件 docker.sh 的权限:
+
+chmod 777 aa.sh
