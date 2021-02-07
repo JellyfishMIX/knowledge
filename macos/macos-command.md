@@ -97,7 +97,7 @@ mv ~/L*/Application\ Support/Dock/*.db ~/Desktop; killall Dock; exit
 open -n /Applications/Google\ Chrome.app/ --args --disable-web-security --user-data-dir=/Users/qianshijie/MyChromeDevUserData/
 ```
 
-完成调试后，需及时关闭并重启Chrome，重启后默认打开跨域保护
+完成调试后，需及时关闭并重启Chrome，重启后默认打开跨域保护。
 
 
 

@@ -69,3 +69,12 @@ es 自带分词器如下：
 - Pattern
 - Language
 
+#### Standard Analyzer
+
+- 默认分词器
+- 其组成如图，特性为：
+  - 按词切分，支持多语言
+  - 小写处理
+
+![image-20201211121933006](https://image-hosting.jellyfishmix.com/20201211122002.png)
+
