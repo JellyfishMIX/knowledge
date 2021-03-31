@@ -68,8 +68,6 @@ J --> J2["monad 架构"]
 
 
 
-
-
-# @FunctionaInterface
+## @FunctionaInterface
 
 把 lambda expression 转换为 interface。
