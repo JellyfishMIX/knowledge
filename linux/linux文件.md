@@ -292,6 +292,68 @@ vi 命令是linux系统下用于文本查看、编辑的命令，不仅仅可以
 
 网址没有加上/会给服务器增加一个查找是否有同名文件的过程。
 
+### 展示当前所在目录
+
+```shell
+pwd
+```
+
+
+
+## echo
+
+用于字符串的输出。命令格式：
+
+```shell
+echo string
+```
+
+您可以使用echo实现更复杂的输出格式控制。
+
+### 1.显示普通字符串:
+
+```shell
+echo "It is a test"
+```
+
+这里的双引号完全可以省略，以下命令与上面实例效果一致：
+
+```shell
+echo It is a test
+```
+
+### 2.显示转义字符
+
+```shell
+echo "\"It is a test\""
+```
+
+结果将是:
+
+```shell
+"It is a test"
+```
+
+同样，双引号也可以省略
+
+### 3.显示变量
+
+read 命令从标准输入中读取一行,并把输入行的每个字段的值指定给 shell 变量
+
+```shell
+#!/bin/sh
+read name 
+echo "$name It is a test"
+```
+
+以上代码保存为 test.sh，name 接收标准输入的变量，结果将是: 
+
+```shell
+[root@www ~]# sh test.sh
+OK                     #标准输入
+OK It is a test        #输出
+```
+
 
 
 ## 引用

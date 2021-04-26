@@ -141,8 +141,34 @@ nohup command > path 2>&1 &
 - `nohup` 表示不挂起地。
 
 - `command` 启动要执行的进程。
+
 - `> path` 表示把path作为标准输出路径。
+
 - `2>&1` `2`表示错误输出，`2>` 表示重定向操作错误提示信息，`&1`表示标准输出路径。意思是把错误输出也输出到刚刚定义的标准输出路径。
+
+  linux中有三种标准输入输出，分别是STDIN，STDOUT，STDERR，对应的数字是0，1，2。
+
+  STDIN是标准输入，默认从键盘读取信息；
+
+  STDOUT是标准输出，默认将输出结果输出至终端；
+
+  STDERR是标准错误，默认将输出结果输出至终端。
+
+  由于STDOUT与STDERR都会默认显示在终端上，为了区分，就有了编号的0，1，2的定义，用1表示STDOUT，2表示STDERR。
+
+  2>&1，指将标准输出、标准错误指定为同一输出路径。
+
+  关于2>&1: 
+
+  ```
+  File descriptor 1 is the standard output (stdout).
+  File descriptor 2 is the standard error (stderr).
+  
+  Here is one way to remember this construct (although it is not entirely accurate): at first, 2>1 may look like a good way to redirect stderr to stdout. However, it will actually be interpreted as "redirect stderr to a file named 1". & indicates that what follows and precedes is a file descriptor and not a filename. So the construct becomes: 2>&1.
+  
+  Consider >& as redirect merger operator.
+  ```
+
 - `&` 表示在后台运行。
 
 e.g.
@@ -152,6 +178,12 @@ nohup java -jar ./sell-eureka-server.jar > /dev/null 2>&1 &
 ```
 
 - `/dev/null` 
+
+  linux特殊文件
+
+  > /dev/null是一个特殊的设备文件，这个文件接收到的任何数据都会被丢弃。因此，null这个设备通常也被成为位桶（bit bucket）或黑洞。 --  《linux shell脚本攻略》
+
+  简单地理解就是，重定向操作给这个/dev/null文件的所有东西都会被丢弃。
 
 ### 关闭后台运行的进程
 
@@ -193,6 +225,14 @@ wget 命令用来从指定的URL下载文件。wget非常稳定，它在带宽�
 
 ```bash
 traceroute
+```
+
+### scp
+
+下载
+
+```shell
+scp root@ip:/path /localPath
 ```
 
 
@@ -287,5 +327,72 @@ openssl x509 -in tmp.crt -out tmp.pem
 
 
 
+## 磁盘 Disk
+
+### 查询磁盘容量
+
+df 命令用于查看磁盘分区上的磁盘空间，包括使用了多少，还剩多少，默认单位是KB。
+
+```bash
+df -hl
+```
+
+执行结果如下：
+
+![img](https://image-hosting.jellyfishmix.com/20210411155140.png)
+
+执行的结果每列的含义：
+
+- 第一列 Filesystem，磁盘分区
+
+- 第二列 Size，磁盘分区的大小
+
+- 第三列 Used，已使用的空间
+
+- 第四列 Avail，可用的空间
+
+- 第五列 Use%，已使用的百分比
+
+- 第六列 Mounted on，挂载点
+
+解释一下后面的h和l参数，h是把显示的单位改成容易辨认的单位，不再是默认的KB了，而l参数表示只显示本地磁盘分区，不包含的分区比如其他服务器共享的磁盘。
+
+如果我们去掉l参数：
+
+```bash
+df -h
+```
+
+执行结果如下：
+![img](https://image-hosting.jellyfishmix.com/20210411155701.png)
+
+可以看到，和带着 l 参数的命令相比，执行的结果多了最下面一行，那是其他服务器的共享目录。
+
+下面附上df命令的全部参数使用说明：
+
+`-a或--all`：包含全部的文件系统；
+`--block-size=<区块大小>`：以指定的区块大小来显示区块数目；
+`-h或--human-readable`：以可读性较高的方式来显示信息；
+`-H或--si`：与-h参数相同，但在计算时是以1000 Bytes为换算单位而非1024 Bytes；
+`-i或--inodes`：显示inode的信息；
+`-k或--kilobytes`：指定区块大小为1024字节；
+`-l或--local`：仅显示本地端的文件系统；
+`-m或--megabytes`：指定区块大小为1048576字节；
+`--no-sync`：在取得磁盘使用信息前，不要执行sync指令，此为预设值；
+`-P或--portability`：使用POSIX的输出格式；
+`--sync`：在取得磁盘使用信息前，先执行sync指令；
+`-t<文件系统类型>或--type=<文件系统类型>`：仅显示指定文件系统类型的磁盘信息；
+`-T或--print-type`：显示文件系统的类型；
+`-x<文件系统类型>或--exclude-type=<文件系统类型>`：不要显示指定文件系统类型的磁盘信息；
+`--help`：显示帮助；
+`--version`：显示版本信息。
+
+
+
 ## 引用/参考
 
+[shell程序中 2> /dev/null 代表什么意思？ - 裕用ID的回答 - 知乎](https://www.zhihu.com/question/53295083/answer/135258024)
+
+[linux标准输入输出 - 平面小狮子 - 简书](https://www.jianshu.com/p/d5ea4a8acfb9)
+
+[Linux中查看磁盘大小、文件大小、排序方法小结 - lkforce - CSDN](https://blog.csdn.net/lkforce/article/details/80917306)

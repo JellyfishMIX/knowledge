@@ -134,7 +134,7 @@ docker run [OPTIONS] IMAGE[:TAG] [COMMAND] [ARG...]
 
 [OPTIONS]加 `-d`：后台运行。
 
-[OPTIONS]加 `-p`：映射到host机器的某个端口。[host port]:[docker interal port]e.g.: `-p 8080:80`。
+[OPTIONS]加 `-p`：映射到 host 机器的某个端口。[host port]:[docker interal port] e.g.: `-p 8080:80`。
 
 [OPTIONS]加 `-P`：把所有docker interal的端口，一对一映射到host机器的随机端口。
 
