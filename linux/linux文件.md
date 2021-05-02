@@ -75,6 +75,8 @@ rm [fir] 文件或目录
 tar -cvf <filename>.tar <filename>
 ```
 
+`<filename>` 也可以是文件夹名称。
+
 此命令只是打包，不是压缩。
 
 #### option

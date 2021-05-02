@@ -160,6 +160,7 @@ e.g.
 
 ```
 docker exec -it [container_id] /bin/bash
+docker exec -it 9382ac2fffcf /bin/bash
 ```
 
 5.
