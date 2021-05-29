@@ -65,6 +65,7 @@ public static void main(String[] args){
   ```
 
 - 只有弱引用与其关联的对象。
+  
   - 关于弱引用请见：[理解Java的强引用、软引用、弱引用和虚引用 - 零壹技术栈 - 掘金](https://juejin.im/post/5b82c02df265da436152f5ad)
 
 
