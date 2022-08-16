@@ -18,6 +18,16 @@ public class ResultVO<T> {
 
 
 
+## @ToString
+
+包含父类字段
+
+```java
+@ToString(callSuper = true)
+```
+
+
+
 ## Q&A
 
 ### 1. compile error: cannot be applied to given types;

@@ -4,7 +4,7 @@
 
 ## 方法引用
 
-诸如`String::length`的语法形式叫做方法引用（*method references*），这种语法用来替代某些特定形式Lambda表达式。如果Lambda表达式的全部内容就是调用一个已有的方法，那么可以用方法引用来替代Lambda表达式。方法引用可以细分为四类：
+诸如 `String::length` 的语法形式叫做方法引用（*method references*），这种语法用来替代某些特定形式Lambda表达式。如果Lambda表达式的全部内容就是调用一个已有的方法，那么可以用方法引用来替代Lambda表达式。方法引用可以细分为四类：
 
 | 方法引用类别       | 举例             |
 | :----------------- | :--------------- |
@@ -81,6 +81,39 @@ public class Test {
 ```java
 int[] intArr = list.stream().mapToInt(Integer::intValue).toArray();
 ```
+
+
+
+## filter()
+
+```java
+    @Test
+    public void testFilter() {
+        List<User> list = new ArrayList<>();
+        User user1 = new User("张三", 15, "男");
+        User user2 = new User("李四", 22, "男");
+        User user3 = new User("王五", 25, "男");
+        User user4 = new User("赵六", 30, "男");
+        User user5 = new User("李世民", 28, "男");
+        User user6 = new User("杨贵妃", 18, "女");
+        User user7 = new User("貂蝉", 16, "女");
+        list.add(user1);
+        list.add(user2);
+        list.add(user3);
+        list.add(user4);
+        list.add(user5);
+        list.add(user6);
+        list.add(user7);
+
+        List<User> collect = list.stream()
+                .filter(user -> !"张三".equals(user.getName()))
+                .collect(Collectors.toList());
+        // 张三不被输出，非张三被输出
+        System.out.println(collect);
+    }
+```
+
+满足 filter() 中条件的数据会被留下来。
 
 
 

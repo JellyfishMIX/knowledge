@@ -239,10 +239,13 @@ Commonly used parameters:
 
 e.g.
 
-使用bash进入一个 container
-
-```
+```bash
+# 使用bash进入一个 container
 docker exec -it [container_id] /bin/bash
+# 对于 alpine 操作系统，没有默认安装 bash，可以：
+docker exec -it [container_id] sh
+# 退出 container
+exit
 ```
 
 5.

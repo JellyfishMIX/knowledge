@@ -47,6 +47,8 @@ zuul:
      myProduct:
        path: /myProduct/**
        serviceId: brother-takeaway-product
+       # 代理前缀默认会从请求路径中移除，false 移除，true 不移除
+       strip-prefix: false
        # sensitiveHeaders，设置需要被过滤的request header敏感信息，cookies默认被zuul过滤。置空表示不设置需要被过滤的request header敏感信息。
        sensitiveHeaders:
     # 简洁写法（简洁写法无法设置sensitiveHeaders）
@@ -67,6 +69,8 @@ management:
       exposure:
         include: routes
 ```
+
+- strip-prefix: [zuul 里面的 prefix 和 strip-prefix 怎么使用 - 王同学 - CSDN](https://blog.csdn.net/u010953880/article/details/102977884)
 
 
 

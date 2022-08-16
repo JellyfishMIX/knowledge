@@ -1,0 +1,9 @@
+# JSON
+
+
+
+## fastjson
+
+```
+JSON.toJSONString();
+```

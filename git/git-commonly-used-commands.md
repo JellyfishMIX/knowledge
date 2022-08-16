@@ -5,8 +5,7 @@
 ## git本地公钥位置
 
 ```bash
-cd ~/.ssh
-cat id_rsa.pub
+cat ~/.ssh/id_rsa.pub
 ```
 
 
@@ -61,6 +60,14 @@ origin为本地仓库想要删除关联的远程仓库地址，可以按实际�
 git add .
 // 对指定文件添加追踪
 git add ./<filename>
+```
+
+
+
+## 提交到本地
+
+```bash
+git commit -m "第一次提交"
 ```
 
 
@@ -192,16 +199,33 @@ Your branch is up-to-date with 'origin/develop'.
 ## Github开源项目贡献代码流程
 
 1. 登录 [https://github.com](https://github.com/)。
-
 2. cFork `git@github.com:gpake/qiniu-wxapp-sdk.git`。
-
 3. 创建您的特性分支 (git checkout -b new-feature)。
-
 4. 提交您的改动 (git commit -am 'Added some features or fixed a bug')。
-
 5. 将您的改动记录提交到远程 git 仓库 (git push origin new-feature)。
-
 6. 然后到 github 网站的该 git 远程仓库的 new-feature 分支下发起 Pull Request。
+
+
+
+## git 修改用户名和邮箱
+
+用户名和邮箱地址是本地git客户端的一个变量，不随git库而改变。
+
+每次commit都会用用户名和邮箱纪录。
+
+### 查看用户名和地址
+
+```css
+git config user.name
+git config user.email
+```
+
+### 修改用户名和地址
+
+```csharp
+git config --global user.name "your name"
+git config --global user.email "your email"
+```
 
 
 

@@ -41,7 +41,7 @@ eureka.instance.prefer-ip-address=true
 
 PS：当 `eureka.instance.ip-address` 和 `eureka.instance.prefer-ip-address` 都配置时，优先前者！
 
-### 2.
+
 
 # eureka在阿里服务器中不能获取正确的公网ip
 
@@ -50,6 +50,33 @@ PS：当 `eureka.instance.ip-address` 和 `eureka.instance.prefer-ip-address` �
 这种情况，把相应服务的公网ip 在配置文件中写固定。
 
 或在eureka中使用域名来指定服务。
+
+
+
+## eureka 配置文件
+
+```yaml
+spring:
+  application:
+    name: coupon-eureka
+
+server:
+  port: 8000
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # 标识是否从 Eureka Server 获取注册信息, 默认是 true. 如果这是一个单节点的 Eureka Server
+    # 不需要同步其他节点的数据, 设置为 false
+    fetch-registry: false
+    # 是否将自己注册到 Eureka Server, 默认是 true. 由于当前应用是单节点的 Eureka Server
+    # 需要设置为 false
+    register-with-eureka: false
+    # 设置 Eureka Server 所在的地址, 查询服务和注册服务都需要依赖这个地址
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+```
 
 
 

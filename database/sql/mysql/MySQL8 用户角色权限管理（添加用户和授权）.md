@@ -22,6 +22,12 @@ host 为登录域名，host 为’%'时表示为 任意IP，为 localhost 时表
 
 paasword 为密码。密码需要满足：至少1位大写字符，至少1位小写字符，至少1位特殊字符，至少1位数字。
 
+e.g.
+
+```sql
+create user 'demo'@'%' identified by 'Demo-pass-2022';
+```
+
 ### 为用户授权角色
 
 ```mysql
@@ -38,6 +44,12 @@ username 为指定的用户。
 
 ```mysql
 flush privileges;
+```
+
+### 查看所有数据库
+
+```sql
+show databases;
 ```
 
 

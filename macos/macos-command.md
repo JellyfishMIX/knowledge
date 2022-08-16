@@ -22,6 +22,8 @@ mkdir xxx
 ls -la
 ```
 
+快捷键：command + shift + .
+
 ### 解压
 
 ```bash
