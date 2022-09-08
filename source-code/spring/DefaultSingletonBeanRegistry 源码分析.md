@@ -65,6 +65,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 *
 	 * 单例对象的缓存，key-value: beanName -> bean 实例
 	 * 第一级缓存，存放创建完成且初始化完成的 bean
+	 * 一级缓存 singletonObjects，在方法中可能会加 synchronized 锁，称为 full singleton lock
 	 */
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
@@ -97,6 +98,76 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 3. 三级缓存 singletonFactories 中存放的是用于创建 bean 的回调函数。需要的时候，会调用 ObjectFactory#getObject 去创建 bean。
 
 三级缓存是为了解决循环依赖问题。
+
+### 其它属性
+
+```java
+	/**
+	 * Set of registered singletons, containing the bean names in registration order.
+	 *
+	 * 一组已注册的单例，包含按注册顺序排列的 beanName
+	 */
+	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
+
+	/**
+	 * Names of beans that are currently in creation.
+	 *
+	 * 正在创建的单例的 beanName 的集合
+	 */
+	private final Set<String> singletonsCurrentlyInCreation =
+			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+
+	/**
+	 * Names of beans currently excluded from in creation checks.
+	 *
+	 * 创建时不检查的 bean 的集合
+	 */
+	private final Set<String> inCreationCheckExclusions =
+			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
+
+	/**
+	 * Collection of suppressed Exceptions, available for associating related causes.
+	 *
+	 * 异常集合
+	 */
+	@Nullable
+	private Set<Exception> suppressedExceptions;
+
+	/**
+	 * Flag that indicates whether we're currently within destroySingletons.
+	 *
+	 * 当前是否在销毁 bean 中
+	 */
+	private boolean singletonsCurrentlyInDestruction = false;
+
+	/**
+	 * Disposable bean instances: bean name to disposable instance.
+	 *
+	 * 一次性 bean 实例
+	 */
+	private final Map<String, Object> disposableBeans = new LinkedHashMap<>();
+
+	/**
+	 * Map between containing bean names: bean name to Set of bean names that the bean contains.
+	 *
+	 * 内部 bean 和外部 bean 之间关系
+	 */
+	private final Map<String, Set<String>> containedBeanMap = new ConcurrentHashMap<>(16);
+
+	/**
+	 * Map between dependent bean names: bean name to Set of dependent bean names.
+	 *
+	 * 指定 bean 与依赖指定 bean 的集合，比如 bcd 依赖 a，那么就是 key 为 a，bcd 为 value
+	 */
+	private final Map<String, Set<String>> dependentBeanMap = new ConcurrentHashMap<>(64);
+
+	/**
+	 * Map between depending bean names: bean name to Set of bean names for the bean's dependencies.
+	 *
+	 * 指定 bean 与指定 bean 依赖的集合，比如 a 依赖 bcd，那么就是 key 为 a，bcd 为 value
+	 */
+	private final Map<String, Set<String>> dependenciesForBeanMap = new ConcurrentHashMap<>(64);
+```
 
 
 
@@ -340,7 +411,7 @@ getSingleton 首先快速检查一下一级缓存和二级缓存，看看有没�
 ## remove 方法
 
 ```java
-	/**
+/**
 	 * Remove the bean with the given name from the singleton cache of this factory,
 	 * to be able to clean up eager registration of a singleton if creation failed.
 	 *
@@ -350,6 +421,7 @@ getSingleton 首先快速检查一下一级缓存和二级缓存，看看有没�
 	 * @see #getSingletonMutex()
 	 */
 	protected void removeSingleton(String beanName) {
+		// 对一级缓存加锁，然后在各级原子化移除
 		synchronized (this.singletonObjects) {
 			this.singletonObjects.remove(beanName);
 			this.singletonFactories.remove(beanName);
@@ -402,3 +474,115 @@ getSingleton 首先快速检查一下一级缓存和二级缓存，看看有没�
 The default implementation register the singleton as currently in creation. / The default implementation marks the singleton as not in creation anymore.
 
 这两个方法是 singleton bean 创建前后的回调函数。继承 DefaultSingletonBeanRegistry 的子类可以重写这两个方法的逻辑，在 DefaultSingletonBeanRegistry 中创建 singleton bean 时会触发。protected 修饰符意思也是只想让子类能访问到去重写。
+
+
+
+## 判断指定的 beanName 是否在创建中
+
+```java
+	/**
+	 * 判断指定的 beanName 是否在创建中
+	 * 作为检测入口，可以做边界条件的处理
+	 *
+	 * @param beanName
+	 * @return
+	 */
+	public boolean isCurrentlyInCreation(String beanName) {
+		Assert.notNull(beanName, "Bean name must not be null");
+		// 创建时不检查的 bean 的集合，即白名单。不在白名单中的 beanName，才去检查是否正在创建中。
+		return (!this.inCreationCheckExclusions.contains(beanName) && isActuallyInCreation(beanName));
+	}
+
+	/**
+	 * 判断指定的 beanName 是否实际正在创建中
+	 * 对实际的理解：如果有多处需要检查的地方，这个方法可以做一个收口。
+	 * 调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的：org.springframework.beans.factory.support.abstractbeanfactory#isActuallyInCreation(java.lang.String)
+	 *
+	 * @param beanName
+	 * @return
+	 */
+	protected boolean isActuallyInCreation(String beanName) {
+		return isSingletonCurrentlyInCreation(beanName);
+	}
+
+	/**
+	 * Return whether the specified singleton bean is currently in creation
+	 * (within the entire factory).
+	 *
+	 * 判断指定的 singleton beanName 是否正在创建中
+	 *
+	 * @param beanName the name of the bean
+	 */
+	public boolean isSingletonCurrentlyInCreation(String beanName) {
+		// singletonsCurrentlyInCreation 中维护了正在创建的单例的 beanName 的集合
+		return this.singletonsCurrentlyInCreation.contains(beanName);
+	}
+```
+
+以上三个方法连用：
+
+1. isCurrentlyInCreation 作为检测入口，可以做边界条件的处理。
+2. isActuallyInCreation 判断指定的 beanName 是否实际正在创建中。对实际的理解：如果有多处需要检查的地方，这个方法可以做一个收口。调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的: org.springframework.beans.factory.support.abstractbeanfactory#isActuallyInCreation(java.lang.String)
+
+```
+	/**
+	 * AbstractBeanFactory 作为 DefaultSingletonBeanRegistry 子类重写的方法，这里就能看出收口方法的作用了。
+	 * 如果有多处需要检查的地方，这个方法可以做一个收口。调用这个方法，就能检测到所有需要检测的位置。
+	 */
+	@Override
+	public boolean isActuallyInCreation(String beanName) {
+		return (isSingletonCurrentlyInCreation(beanName) || isPrototypeCurrentlyInCreation(beanName));
+	}
+```
+
+3. isSingletonCurrentlyInCreation 判断指定的 singleton beanName 是否正在创建中，singletonsCurrentlyInCreation 中维护了正在创建的单例的 beanName 的集合。
+
+
+
+## registerDependentBean 方法
+
+```java
+	/**
+	 * Register a dependent bean for the given bean,
+	 * to be destroyed before the given bean is destroyed.
+	 *
+	 * 把 bean 注册为 dependentBean 的依赖
+	 *
+	 * @param beanName the name of the bean
+	 * @param dependentBeanName the name of the dependent bean
+	 */
+	public void registerDependentBean(String beanName, String dependentBeanName) {
+		// 传入一个 name，不管这个 name 是别名还是本名，此方法将获得真实的本名
+		String canonicalName = canonicalName(beanName);
+
+		/*
+		 * 指定 bean 与依赖指定 bean 的集合，比如 bcd 依赖 a，那么就是 key 为 a，bcd 为 value
+		 * dependentBeanMap 是 ConcurrentHashMap。这里体现了 ConcurrentHashMap 只能保证 api 是线程安全的，如果组合使用多个 api，还是可能出现竟态条件问题，需要加锁
+		 */
+		synchronized (this.dependentBeanMap) {
+			// 拿到 beanName 对应的 value，如果 value 不存在就初始化一个 LinkedHashSet 用于存储依赖于 beanName bean 的 dependentBean
+			Set<String> dependentBeans =
+					this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
+			// beanName bean 的 dependentBean set 中添加一个元素
+			if (!dependentBeans.add(dependentBeanName)) {
+				return;
+			}
+		}
+
+		// 指定 bean 与指定 bean 依赖的集合，比如 a 依赖 bcd，那么就是 key 为 a，bcd 为 value
+		synchronized (this.dependenciesForBeanMap) {
+			// 拿到 dependentBeanName 对应的 value，如果 value 不存在就初始化一个 LinkedHashSet 用于存储 dependentBeanName bean 的 dependenciesBean
+			Set<String> dependenciesForBean =
+					this.dependenciesForBeanMap.computeIfAbsent(dependentBeanName, k -> new LinkedHashSet<>(8));
+			// dependentBeanName bean 的 dependenciesBean set 中添加一个元素
+			dependenciesForBean.add(canonicalName);
+		}
+	}
+```
+
+把 bean 注册为 dependentBean 的依赖，同时维护了：
+
+1. dependentBeanMap: 指定 bean 与依赖指定 bean 的集合，比如 bcd 依赖 a，那么就是 key 为 a，bcd 为 value。
+2. dependenciesForBeanMap: 指定 bean 与指定 bean 依赖的集合，比如 a 依赖 bcd，那么就是 key 为 a，bcd 为 value。
+
+并且此方法中针对 ConcurrentHashMap 加了 synchronized 锁。这里体现了 ConcurrentHashMap 只能保证 api 是线程安全的，如果组合使用多个 api，还是可能出现竟态条件问题，需要加锁。
