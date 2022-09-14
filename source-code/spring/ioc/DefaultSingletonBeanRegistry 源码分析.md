@@ -496,7 +496,7 @@ The default implementation register the singleton as currently in creation. / Th
 	/**
 	 * 判断指定的 beanName 是否实际正在创建中
 	 * 对实际的理解：如果有多处需要检查的地方，这个方法可以做一个收口。
-	 * 调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的：org.springframework.beans.factory.support.abstractbeanfactory#isActuallyInCreation(java.lang.String)
+	 * 调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的：org.springframework.beans.factory.support.AbstractBeanFactory#isActuallyInCreation(java.lang.String)
 	 *
 	 * @param beanName
 	 * @return
@@ -522,9 +522,9 @@ The default implementation register the singleton as currently in creation. / Th
 以上三个方法连用：
 
 1. isCurrentlyInCreation 作为检测入口，可以做边界条件的处理。
-2. isActuallyInCreation 判断指定的 beanName 是否实际正在创建中。对实际的理解：如果有多处需要检查的地方，这个方法可以做一个收口。调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的: org.springframework.beans.factory.support.abstractbeanfactory#isActuallyInCreation(java.lang.String)
+2. isActuallyInCreation 判断指定的 beanName 是否实际正在创建中。对实际的理解：如果有多处需要检查的地方，这个方法可以做一个收口。调用这个方法，就能检测到所有需要检测的位置。可以参考子类重写的: org.springframework.beans.factory.support.AbstractBeanFactory#isActuallyInCreation(java.lang.String)
 
-```
+```java
 	/**
 	 * AbstractBeanFactory 作为 DefaultSingletonBeanRegistry 子类重写的方法，这里就能看出收口方法的作用了。
 	 * 如果有多处需要检查的地方，这个方法可以做一个收口。调用这个方法，就能检测到所有需要检测的位置。
