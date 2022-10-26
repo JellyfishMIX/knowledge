@@ -2,6 +2,14 @@
 
 
 
+## 前言
+
+1. 本文基于 jdk 8 编写。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+
+
+
 ## offer(E e) 方法[非阻塞]
 
 offer 方法呈现的效果: offer(E e): 表示如果可能的话,将 e 添加到 BlockingQueue 里,即如果 BlockingQueue 可以容纳，则返回 true，否则返回 false。本方法不阻塞当前执行方法。

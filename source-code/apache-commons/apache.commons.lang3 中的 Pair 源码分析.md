@@ -2,6 +2,13 @@
 
 
 
+## 说明
+
+1. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+2. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+
+
+
 ## 介绍
 
 Pair 用于存储左右元素对，Pair<Left, Right>。主要有两个子类，ImmutablePair 和 MutablePair。

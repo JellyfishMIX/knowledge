@@ -4,8 +4,10 @@
 
 ## 说明
 
-1. 本文基于 guava 31.1-jre
-2. 本文默认已经了解 builder 模式。本文所讲 Product 类，Product 类的接口，Builder 类均是 builder 模式的概念。
+1. 本文基于 guava 31.1-jre 写作。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+4. 本文默认已经了解 builder 模式。本文所讲 Product 类，Product 类的接口，Builder 类均是 builder 模式的概念。
 
 
 

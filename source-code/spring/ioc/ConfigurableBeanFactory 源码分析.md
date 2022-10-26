@@ -2,10 +2,10 @@
 
 
 
-## 前言
+## 说明
 
-1. 本文基于 jdk 8, spring-framework 5.2.x 写作。
-1. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+1. 本文基于 jdk 8, spring-framework 5.2.x 编写。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
 3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
 
 
@@ -46,7 +46,17 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 
 
 
+## 介绍
+
+1. 可配置的 BeanFactory，声明了对 BeanFactory 各种各样的配置能力，如 bean 的作用域，bean 的 classLoader，bean 的元数据缓存，bean 的表达式解析器，类型转换器，属性编辑器等。实现此接口即拥有对 BeanFactory 的配置能力。
+2. ConfigurableBeanFactory 这个巨大的 BeanFactory 体系接口，继承自 HierarchicalBeanFactory 和 SingletonBeanRegistry 这两个接口，并额外独有多个方法。
+3. 本文介绍 ConfigurableBeanFactory 接口独有的主要方法。
+
+
+
 ## 属性
+
+两个属性，singleton 表示原型模式。prototype 表示原型模式。
 
 ```java
 	/**
@@ -74,6 +84,8 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 
 ## 父容器
 
+setParentBeanFactory 方法设置父类容器。
+
 ```java
 	/**
 	 * Set the parent of this bean factory.
@@ -93,6 +105,11 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 
 
 ## 类加载器
+
+1. setBeanClassLoader 方法: 设置 bean 的类加载器。
+2. getBeanClassLoader 方法: 获取 bean 的类加载器。
+3. setTempClassLoader 方法: 设置临时加载器。如果涉及到加载时 aop 编织，通常仅指定一个临时类装入器，以确保实际的 bean 类被尽可能延迟地装入。一旦 BeanFactory 完成他的启动解析后，这个临时的类加载器将被移除。
+4. getTempClassLoader 方法: 获取临时加载器。
 
 ```java
 	/**
@@ -154,6 +171,9 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
 
 bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean 都要从类加载器获取信息。
 
+1. setCacheBeanMetadata 方法: 设置是否缓存。
+2. isCacheBeanMetadata 方法: 判断是否缓存。
+
 ```java
 	/**
 	 * Set whether to cache bean metadata such as given bean definitions
@@ -180,6 +200,9 @@ bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean �
 
 
 ## bean 的表达式解析器
+
+1. setBeanExpressionResolver 方法: 设置表达式解析器。
+2. getBeanExpressionResolver 方法: bean 的表达式解析器，获取表达式解析器。
 
 ```java
 	/**
@@ -209,6 +232,9 @@ bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean �
 
 ## 类型转换器
 
+1. setConversionService 方法: 设置类型转换器。
+2. getConversionService 方法: 获取类型转换器。
+
 ```java
 	/**
 	 * Specify a Spring 3.0 ConversionService to use for converting
@@ -234,6 +260,9 @@ bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean �
 
 
 ## 属性编辑器
+
+1. addPropertyEditorRegistrar 方法: 添加属性编辑器。
+2. registerCustomEditor 方法: 注册给定类型的属性编辑器。
 
 ```java
 	/**
@@ -264,6 +293,5 @@ bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean �
 	 */
 	void registerCustomEditor(Class<?> requiredType, Class<? extends PropertyEditor> propertyEditorClass);
 ```
-
 
 

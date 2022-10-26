@@ -2,6 +2,14 @@
 
 
 
+## 说明
+
+1. 本文基于 jdk 8, dubbo 2.7.18 写作。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+
+
+
 ## java SPI 机制
 
 ### 介绍

@@ -4,8 +4,10 @@
 
 ## 说明
 
-1. 为了方便参考源码，本文在针对源码进行注释时，保留了源码中的全部注释。
-2. 默认阅读本文前已经了解了线程池的七大参数和运行机制，由于时间关系这里没有再次贴出。日后有精力的话，或许会考虑在此处整理复习。
+1. 本文基于 jdk 8 编写。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+4. 默认阅读本文前已经了解了线程池的七大参数和运行机制，由于时间关系这里没有再次贴出。日后有精力的话，或许会考虑在此处整理复习。
 
 
 

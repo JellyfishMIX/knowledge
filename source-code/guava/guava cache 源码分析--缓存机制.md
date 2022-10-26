@@ -1,4 +1,12 @@
-## guava cache 源码分析 -- 缓存机制
+# guava cache 源码分析 -- 缓存机制
+
+
+
+## 说明
+
+1. 本文基于 guava 31.1-jre 写作。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
 
 
 
@@ -257,7 +265,9 @@ com.google.common.cache.LocalCache.Segment#get(K, int, com.google.common.cache.C
 2. 调用 Segment#getEntry 方法，根据 key 和 hash，获取对应的 entry。
 3. 调用 Segment#getLiveValue 方法获取有效的 value。
 4. 如果获取到了 value，记录访问，维护 LRU 队列。statsCounter 统计信息。
-5. 根据用户是否设置距离上次访问/写入后一段时间过期，进行刷新或者直接返回。
+5. 根据用户是否设置刷新时间(距离上次写入间隔一段时间)，进行刷新或返回旧值。
+6. 如果 value 正在加载中，调用 Segment#waitForLoadingValue 方法，等待其他线程 load 完成后获取 value。
+7. value 不存在或者过期，调用 Segment#lockedGetOrLoad 方法通过 loader 阻塞地加载 value。
 
 ```java
         /**
@@ -294,12 +304,13 @@ com.google.common.cache.LocalCache.Segment#get(K, int, com.google.common.cache.C
                             recordRead(e, now);
                             // statsCounter 统计信息
                             statsCounter.recordHits(1);
-                            // 根据用户是否设置距离上次访问/写入后一段时间过期，进行刷新或者直接返回
+                            // 根据用户是否设置刷新时间(距离上次写入间隔一段时间)，进行刷新或返回旧值
                             return scheduleRefresh(e, key, hash, value, now, loader);
                         }
                         ValueReference<K, V> valueReference = e.getValueReference();
                         // 如果正在加载中，等待加载完成后获取
                         if (valueReference.isLoading()) {
+                            // 等待其他线程 load 完成后获取 value
                             return waitForLoadingValue(e, key, valueReference);
                         }
                     }
@@ -513,6 +524,18 @@ com.google.common.cache.LocalCache.Segment#recordRead
 1. 因此我们可以考虑使用 refreshAfterWrite。refreshAfterWrite 的特点是，在 refresh 过程中，Segment 只有 1 个线程做加载操作，其他 get 操作先返回旧值。这样可以有效地减少阻塞耗时，所以 refreshAfterWrite 比 expireAfterWrite 性能好。
 2. refreshAfterWrite 缺点是，到达指定时间后，不保证所有的 get 都获取到新值。Segment 没使用额外的线程去做定时清理和加载的功能，而是依赖于调用 get 方法的线程同步处理。在 get 时对比上次更新时间，如超过指定时间则进行加载。所以，如果使用refreshAfterWrite，在吞吐量低的情况下，很长一段时间内没有 get 操作后，发起几个请求触发 get 操作，再次 get 只有一个线程会加载，其他请求线程得到的是一个旧值（这个旧值可能来自于很长时间之前），将会引发问题。
 
+### 组合使用
+
+1. expireAfterWrite 和 refreshAfterWrite 组合使用可以解决各自的缺点。
+2. 例如: 控制缓存每 1s 进行 refresh，如果超过 2s 没有访问，则让缓存失效，下次获取时不会得到旧值，而是必须阻塞地等待新值加载，返回新值。
+
+![Screen Shot 2022-10-21 at 10.46.25 AM](https://image-hosting.jellyfishmix.com/20221021105332.png)
+
+1. 这个 get 方法，编号 1 获取存活有效的 entry，即根据 expireAfterAccess 和 expireAfterWrite 判断是否过期。
+
+2. 如果过期，且其他线程没有在加载这个 value，执行编号 3。阻塞地加载 value。
+3. 编号 2 在未过期的情况下，根据 refreshAfterWrite 判断是否需要 refresh。
+
 
 
 ## Segment#lockedGetOrLoad 方法
@@ -697,3 +720,376 @@ com.google.common.cache.LocalCache.Segment#waitForLoadingValue
         }
 ```
 
+
+
+## Segment#scheduleRefresh 方法
+
+com.google.common.cache.LocalCache.Segment#scheduleRefresh
+
+根据用户是否设置刷新时间(距离上次写入间隔一段时间)，进行刷新或返回旧值。
+
+1. 判断是否需要 refresh，且当前非 loading 状态。如果是则进行 refresh 操作，并返回新值。
+2. 刷新指定的 key 对应的 value。返回值 newValue 有两种情况: 为 null，表示先返回旧值。不为 null 则是加载后的 value。
+
+```java
+        /**
+         * 根据用户是否设置刷新时间(距离上次写入间隔一段时间)，进行刷新或返回旧值
+         *
+         * @param entry
+         * @param key
+         * @param hash
+         * @param oldValue
+         * @param now
+         * @param loader
+         * @return
+         */
+        V scheduleRefresh(
+                ReferenceEntry<K, V> entry,
+                K key,
+                int hash,
+                V oldValue,
+                long now,
+                CacheLoader<? super K, V> loader) {
+            // 判断是否需要 refresh，且当前非 loading 状态。如果是则进行 refresh 操作，并返回新值。
+            if (map.refreshes()
+                    && (now - entry.getWriteTime() > map.refreshNanos)
+                    && !entry.getValueReference().isLoading()) {
+                // 刷新指定的 key 对应的 value。返回值 newValue 有两种情况: 为 null，表示先返回旧值。不为 null 则是加载后的 value。
+                V newValue = refresh(key, hash, loader, true);
+                if (newValue != null) {
+                    return newValue;
+                }
+            }
+            return oldValue;
+        }
+```
+
+
+
+## Segment#refresh 方法
+
+com.google.common.cache.LocalCache.Segment#refresh
+
+刷新指定的 key 对应的 value。
+
+返回值有两种情况: 为 null，表示先返回旧值。不为 null 则是加载后的 value。
+
+主要逻辑:
+
+1. insertLoadingValueReference 方法用于判断返回旧值，还是需要对 value 进行加载。
+2. 走到这里说明当前线程需要做 load 操作，进行 load。
+3. 检查 resultFuture，如果已经加载完毕，返回加载后的值。如果尚未加载完毕，返回 null，表示当前线程先返回旧值。
+
+```java
+        /**
+         * Refreshes the value associated with {@code key}, unless another thread is already doing so.
+         * Returns the newly refreshed value associated with {@code key} if it was refreshed inline, or
+         * {@code null} if another thread is performing the refresh or if an error occurs during
+         * refresh.
+         *
+         * 刷新指定的 key 对应的 value。
+         * 返回值有两种情况: 为 null，表示先返回旧值。不为 null 则是加载后的 value。
+         */
+        @CanIgnoreReturnValue
+        @CheckForNull
+        V refresh(K key, int hash, CacheLoader<? super K, V> loader, boolean checkTime) {
+            // insertLoadingValueReference 方法用于判断返回旧值，还是需要对 value 进行加载
+            final LoadingValueReference<K, V> loadingValueReference =
+                    insertLoadingValueReference(key, hash, checkTime);
+            // 这里返回 null，表示当前线程不刷新，返回旧值
+            if (loadingValueReference == null) {
+                return null;
+            }
+
+            // 走到这里说明当前线程需要做 load 操作，进行 load
+            ListenableFuture<V> result = loadAsync(key, hash, loadingValueReference, loader);
+            // 检查 resultFuture，如果已经加载完毕，返回加载后的值。如果尚未加载完毕，返回 null，表示当前线程先返回旧值。
+            if (result.isDone()) {
+                try {
+                    return Uninterruptibles.getUninterruptibly(result);
+                } catch (Throwable t) {
+                    // don't let refresh exceptions propagate; error was already logged
+                }
+            }
+            return null;
+        }
+```
+
+
+
+## Segment#insertLoadingValueReference 方法
+
+com.google.common.cache.LocalCache.Segment#insertLoadingValueReference
+
+1. 判断返回旧值，还是返回一个 LoadingValueReference。
+2. 返回 LoadingValueReference 表示需要对 value 进行加载。返回 null 表示返回旧值。
+3. 这个方法并不会对 value 进行加载，只是在线程安全区域做一个是否要加载的判断。
+4. 可以认为返回值 LoadingValueReference 是加载标记，并发情况下只有一个线程能拿到 LoadingValueReference 加载标记。
+
+主要逻辑：
+
+1. 获取锁，进入线程安全区域。
+2. 根据 key 的 hash 定位桶位置。
+3. 遍历链表，链表迭代中定位到 key 对应的 entry。
+4. 获得 key 对应的 valueReference。
+5. 判断 value 是否正在 loading，或写入(加载)间隔时间小于 refresh 阈值。如果满足条件，则返回旧值。如果不满足条件，返回一个 loadingValueReference，表示此线程需要对 value 进行 load。
+6. 如果原先 table 中没有对应的 entry，需要新加入一个 entry，并设置 loadingValueReference 表示需要对 value 进行加载。
+7. 释放锁，退出线程安全区域。
+
+```java
+        /**
+         * Returns a newly inserted {@code LoadingValueReference}, or null if the live value reference
+         * is already loading.
+         *
+         * 判断返回旧值，还是返回一个 LoadingValueReference。
+         * 返回 LoadingValueReference 表示需要对 value 进行加载。返回 null 表示返回旧值。
+         * 这个方法并不会对 value 进行加载，只是在线程安全区域做一个是否要加载的判断。
+         * 可以认为返回值 LoadingValueReference 是加载标记，并发情况下只有一个线程能拿到 LoadingValueReference 加载标记。
+         */
+        @CheckForNull
+        LoadingValueReference<K, V> insertLoadingValueReference(
+                final K key, final int hash, boolean checkTime) {
+            ReferenceEntry<K, V> e = null;
+            // 获取锁，进入线程安全区域
+            lock();
+            try {
+                long now = map.ticker.read();
+                preWriteCleanup(now);
+
+                AtomicReferenceArray<ReferenceEntry<K, V>> table = this.table;
+                // 根据 key 的 hash 定位桶位置
+                int index = hash & (table.length() - 1);
+                ReferenceEntry<K, V> first = table.get(index);
+
+                /*
+                 * Look for an existing entry.
+                 *
+                 * 遍历链表
+                 */
+                for (e = first; e != null; e = e.getNext()) {
+                    K entryKey = e.getKey();
+                    // 链表迭代中定位到 key 对应的 entry
+                    if (e.getHash() == hash
+                            && entryKey != null
+                            && map.keyEquivalence.equivalent(key, entryKey)) {
+                        // We found an existing entry.
+
+                        // 获得 key 对应的 valueReference
+                        ValueReference<K, V> valueReference = e.getValueReference();
+                        // 判断 value 是否正在 loading，或写入(加载)间隔时间小于 refresh 阈值。如果满足条件，则返回旧值。
+                        if (valueReference.isLoading()
+                                || (checkTime && (now - e.getWriteTime() < map.refreshNanos))) {
+                            /*
+                             * refresh is a no-op if loading is pending
+                             * if checkTime, we want to check *after* acquiring the lock if refresh still needs
+                             * to be scheduled
+                             *
+                             * 这里返回 null，外层判断返回值为 null，会返回 oldValue
+                             */
+                            return null;
+                        }
+
+                        // continue returning old value while loading
+                        ++modCount;
+                        // 走到这里，说明原先 table 中没有对应的 entry，需要新加入一个 entry，并设置 loadingValueReference 表示需要对 value 进行加载
+                        LoadingValueReference<K, V> loadingValueReference =
+                                new LoadingValueReference<>(valueReference);
+                        e.setValueReference(loadingValueReference);
+                        return loadingValueReference;
+                    }
+                }
+
+                // 走到这里，说明原先 table 中没有对应的 entry，需要新加入一个 entry，并对 value 进行加载
+                ++modCount;
+                LoadingValueReference<K, V> loadingValueReference = new LoadingValueReference<>();
+                e = newEntry(key, hash, first);
+                e.setValueReference(loadingValueReference);
+                table.set(index, e);
+                return loadingValueReference;
+            } finally {
+                // 释放锁，退出线程安全区域
+                unlock();
+                postWriteCleanup();
+            }
+        }
+```
+
+
+
+## loadAsync 方法
+
+com.google.common.cache.LocalCache.Segment#loadAsync
+
+使用 loader 加载 value，统计信息并存储加载得到的 value。
+
+请注意，这里同步还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。具体请见 loadFuture 方法。
+
+主要逻辑:
+
+1. 调用 LoadingValueReference#loadFuture 方法，使用 loader 加载 value，返回一个 future。
+2. 给 future 设置一个 callback，value 加载完成后触发，统计信息并存储加载得到的 value。
+
+```java
+        /**
+         * 使用 loader 加载 value，统计信息并存储加载得到的 value。
+         * 请注意，这里同步还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。
+         * 具体请见 loadFuture 方法: com.google.common.cache.LocalCache.LoadingValueReference#loadFuture(java.lang.Object, com.google.common.cache.CacheLoader)
+         *
+         * @param key
+         * @param hash
+         * @param loadingValueReference
+         * @param loader
+         * @return
+         */
+        ListenableFuture<V> loadAsync(
+                final K key,
+                final int hash,
+                final LoadingValueReference<K, V> loadingValueReference,
+                CacheLoader<? super K, V> loader) {
+            /*
+             * 使用 loader 加载 value，返回一个 future。
+             * 请注意，这里同步还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。具体请见 loadFuture 方法。
+             */
+            final ListenableFuture<V> loadingFuture = loadingValueReference.loadFuture(key, loader);
+            // value 加载完成后触发的 callback
+            loadingFuture.addListener(
+                    () -> {
+                        try {
+                            // 统计信息并存储加载得到的 value
+                            getAndRecordStats(key, hash, loadingValueReference, loadingFuture);
+                        } catch (Throwable t) {
+                            logger.log(Level.WARNING, "Exception thrown during refresh", t);
+                            loadingValueReference.setException(t);
+                        }
+                    },
+                    directExecutor());
+            return loadingFuture;
+        }
+```
+
+
+
+## LoadingValueReference#loadFuture 方法
+
+com.google.common.cache.LocalCache.LoadingValueReference#loadFuture
+
+使用 loader 加载 value，返回一个 future。
+
+请注意，这里同步还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。
+
+主要逻辑：
+
+1. 判断 oldValueReference 是否有值。
+   1. 如果 oldValueReference 有值，则可以异步加载，先返回旧值。
+   2. 如果 oldValueReference 没有值，则不可以使用异步加载，因为本来就没有可以先返回的旧值，必须使用当前线程同步加载，才有可以返回的值。
+2. 使用 loader 加载 value，调用 CacheLoader#reload 方法进行加载。
+   1. 这里是同步加载还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。
+   2. 默认的 CacheLoader#reload 方法会同步调用我们重写的 CacheLoader#load，所以如果我们传入的 CacheLoader 未重写 reload 方法，默认实现是同步加载。
+   3. 我们可以在使用 builder 模式创建 LoadingCache(LocalCache) 时，自己重写 CacheLoader#reload 方法做异步加载。
+   4. 也可以使用 CacheLoader.asyncReloading() 方法返回的具有异步加载功能的 CacheLoader 实现类。
+3. 返回前对 LoadingValueReference 设置一下加载出来的值。
+
+```java
+/**
+ * 使用 loader 加载 value，返回一个 future。
+ * 请注意，这里同步还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。
+ *
+ * @param key
+ * @param loader
+ * @return
+ */
+public ListenableFuture<V> loadFuture(K key, CacheLoader<? super K, V> loader) {
+    try {
+        stopwatch.start();
+        /*
+         * 判断 oldValueReference 是否有值。
+         * 如果 oldValueReference 有值，则可以异步加载，先返回旧值。
+         * 如果 oldValueReference 没有值，则不可以使用异步加载，因为本来就没有可以先返回的旧值，必须使用当前线程同步加载，才有可以返回的值。
+         */
+        V previousValue = oldValue.get();
+        if (previousValue == null) {
+            V newValue = loader.load(key);
+            return set(newValue) ? futureValue : Futures.immediateFuture(newValue);
+        }
+        /*
+         * 使用 loader 加载 value，调用 CacheLoader#reload 方法进行加载。
+         * 这里是同步加载还是异步加载，主要看传入的 CacheLoader 实现类是否重写了 reload 方法。
+         * 默认的 CacheLoader#reload 方法会同步调用我们重写的 CacheLoader#load，所以如果我们传入的 CacheLoader 未重写 reload 方法，默认实现是同步加载。
+         * 我们可以在使用 builder 模式创建 LoadingCache(LocalCache) 时，自己重写 CacheLoader#reload 方法做异步加载。
+         * 也可以使用 CacheLoader.asyncReloading() 方法返回的具有异步加载功能的 CacheLoader 实现类。
+         */
+        ListenableFuture<V> newValue = loader.reload(key, previousValue);
+        if (newValue == null) {
+            return Futures.immediateFuture(null);
+        }
+        // To avoid a race, make sure the refreshed value is set into loadingValueReference
+        // *before* returning newValue from the cache query.
+        // 返回前对 LoadingValueReference 设置一下加载出来的值
+        return transform(
+                newValue,
+                newResult -> {
+                    LoadingValueReference.this.set(newResult);
+                    return newResult;
+                },
+                directExecutor());
+    } catch (Throwable t) {
+        ListenableFuture<V> result = setException(t) ? futureValue : fullyFailedFuture(t);
+        if (t instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+        }
+        return result;
+    }
+}
+```
+
+### 默认的 CacheLoader#reload 方法
+
+com.google.common.cache.CacheLoader#reload
+
+默认的 CacheLoader#reload 方法，同步加载。
+
+```java
+  @GwtIncompatible // Futures
+  public ListenableFuture<V> reload(K key, V oldValue) throws Exception {
+    checkNotNull(key);
+    checkNotNull(oldValue);
+    // 这里可以看到，在同步加载
+    return Futures.immediateFuture(load(key));
+  }
+```
+
+### 异步加载
+
+默认的 CacheLoader#reload 方法会同步调用我们重写的 CacheLoader#load，所以如果我们传入的 CacheLoader 未重写 reload 方法，默认实现是同步加载。
+
+1. 我们可以在使用 builder 模式创建 LoadingCache(LocalCache) 时，自己重写 CacheLoader#reload 方法做异步加载。
+2. 也可以使用 CacheLoader.asyncReloading() 方法返回的具有异步加载功能的 CacheLoader 实现类。
+
+使用 builder 模式创建 LoadingCache(LocalCache) 时，自己重写 CacheLoader#reload 方法做异步加载。
+
+```java
+  public LoadingCache<String, String> serviceCache =
+      CacheBuilder.newBuilder().maximumSize(20000).expireAfterWrite(10, TimeUnit.SECONDS)
+          .recordStats().build(new CacheLoader<String, String>() {
+        @Override
+        public String load(String key) {
+          return service.query(key);
+        }
+      	
+      	@Override
+      	public ListenableFuture<V> reload(final K key, final V oldValue) {
+          ListenableFutureTask<V> task =
+              ListenableFutureTask.create(() -> loader.reload(key, oldValue).get());
+          executor.execute(task);
+          return task;
+      	}
+      });
+```
+
+使用 CacheLoader.asyncReloading() 方法返回的具有异步加载功能的 CacheLoader 实现类举例:
+
+```java
+  public LoadingCache<String, String> serviceCache =
+      CacheBuilder.newBuilder().maximumSize(20000).expireAfterWrite(10, TimeUnit.SECONDS)
+          .recordStats().build(CacheLoader.asyncReloading());
+```
