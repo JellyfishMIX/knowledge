@@ -73,9 +73,62 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport implements Co
 }
 ```
 
-仅列出部分方法。
+这里面初始化了 dubbo 配置文件，可以看到有各种 dubbo xml 配置中可能用到的标签。服务发布相关逻辑在 ServiceBean 中。
 
-这里面初始化了 dubbo 配置文件，可以看到有各种 dubbo xml 配置中可能用到的标签。
 
-服务发布相关逻辑在 ServiceBean 中。
 
+## Invoker
+
+Invoker，一个可执行对象，能根据方法名称，参数得到相应的执行结果。接口如下：
+
+```java
+public interface Invoker<T> {
+    Class<T> getInterface();
+
+    URL getUrl();
+
+    Result invoke(Invocation invocation) throws RpcException;
+
+    void destroy();
+}
+```
+
+Invocation  接口包含了需要执行的方法，参数等信息，接口如下：
+
+```java
+public interface Invocation {
+    URL getUrl();
+
+    String getMethodName();
+
+    Class<?>[] getParameterTypes();
+
+    Object[] getArguments();
+}
+```
+
+目前实现类只有一个 RpcInvocation
+
+Invoker 执行过程分成三种类型：
+
+1. 本地执行的 Local Invoker。
+2. 远程通信执行的 Remote Invoker。
+3. 多个 Remote Invoker 聚合成的集群版 Invoker。
+
+以HelloService接口为例：
+
+本地执行的 Local Invoker: server 端，含有对应的 HelloServiceImpl 实现，要执行该接口方法，只需要通过反射执行HelloServiceImpl对应的方法即可。
+
+远程通信执行的 Remote Invoker: client 端执行该接口的方法，需要进行远程通信，发送要执行的参数信息给 server 端。server 端利用本地执行的 Local Invoker 执行相应的方法，然后将执行结果返回给 client 端。这个过程是经典的 rpc 调用。
+
+集群 Invoker：client 端拥有某个服务的多个 Invoker，将多个 Invoker 聚合成一个集群版的 Invoker，client 端使用时，只需通过集群版的Invoker来进行操作。集群版的Invoker会从众多的远程通信类型的Invoker中选择一个来执行（从中加入负载均衡、服务降级等策略），类似服务治理，dubbo已经实现了
+
+
+
+## 服务发布机制介绍
+
+![这里写图片描述](https://image-hosting.jellyfishmix.com/20221101013949.jpeg)
+
+1. 首先 ServiceConfig 拿到对外提供服务的实现类 ref(如: HelloWorldImpl)，然后通过 ProxyFactory 类的 getInvoker 方法使用 ref 生成一个 AbstractProxyInvoker 实例，完成具体服务到 Invoker 的转化。接下来就是 Invoker 转换到 Exporter 的过程。
+
+2. Dubbo处理服务暴露的关键就在Invoker转换到Exporter的过程(如上图中的红色部分)，Dubbo协议的Invoker转为Exporter发生在DubboProtocol类的export方法，它主要是打开socket侦听服务，并接收客户端发来的各种请求，通讯细节由Dubbo自己实现。

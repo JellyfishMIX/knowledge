@@ -1,4 +1,11 @@
-# 由 mysql 中的一次慢查询，来看 order by 的文件排序索和引排序
+# 由 mysql 中的一次慢查询，来看 order by 的文件排序和索引排序
+
+
+
+## 说明
+
+1. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+2. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
 
 
 
@@ -38,9 +45,9 @@ filesort 并不是说通过磁盘文件进行排序，只是告诉我们进行�
 
 在 mysql 中 filesort 的实现算法有两种：
 
-双路排序：根据查询条件取出排序字段，和可以直接定位行数据的行指针信息，这也是第一次 IO。然后在 sort buffer 中进行排序。把行指针排序好后，要再进行一次 IO 将具体的行查询字段读出，才能返回结果。
+1. 双路排序：根据查询条件取出排序字段，和可以直接定位行数据的行指针信息，这也是第一次 IO。然后在 sort buffer 中进行排序。把行指针排序好后，要再进行一次 IO 将具体的行查询字段读出，才能返回结果。
 
-单路排序：根据查询条件取出排序字段和需要查询的行字段（一次 IO），然后在 sort buffer 中进行排序。排序后就可以返回结果了。
+2. 单路排序：根据查询条件取出排序字段和需要查询的行字段（一次 IO），然后在 sort buffer 中进行排序。排序后就可以返回结果了。
 
 在 mysql 4.1 版本之前只有双路排序，单路排序是从 mysql 4.1 开始推出的改进算法。单路排序的主要目的，为了把双路排序中需要两次 IO，变成只需要一次 IO，但相应也会耗用更多的 sortbuffer 空间。mysql 4.1 及之后的版本同时支持双路排序与单路排序。
 
@@ -52,7 +59,7 @@ mysql 主要通过比较我们所设定的系统参数 max_length_for_sort_data 
 
 ## 索引排序
 
-在使用 explain 分析查询的时候**，**利用有序索引获取有序数据显示 Using index，而文件排序显示 Using filesort
+在使用 explain 分析查询的时候，利用有序索引获取有序数据显示 Using index，而文件排序显示 Using filesort
 
 InnoDB 中的索引是 B+ 树结构，B+ 树中的索引是有序的。因此可以通过给排序字段加索引，利用索引的有序性，来加快排序速度。
 

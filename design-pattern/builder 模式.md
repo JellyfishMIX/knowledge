@@ -4,8 +4,10 @@
 
 ## 说明
 
-1. 本文默认已经知道了 builder 模式的使用场景和意义，只分析 builder 模式的实现。
-2. 直接通过 demo 讲更清晰。
+1. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+2. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+3. 本文默认已经知道了 builder 模式的使用场景和意义，只分析 builder 模式的实现。
+4. 直接通过 demo 讲更清晰。
 
 
 

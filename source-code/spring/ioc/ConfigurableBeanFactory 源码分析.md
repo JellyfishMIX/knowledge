@@ -294,4 +294,3 @@ bean 的元数据缓存，默认为 true。如果为 false，每次创建 bean �
 	void registerCustomEditor(Class<?> requiredType, Class<? extends PropertyEditor> propertyEditorClass);
 ```
 
-
