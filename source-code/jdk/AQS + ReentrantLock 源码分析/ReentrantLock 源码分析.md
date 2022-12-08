@@ -426,7 +426,7 @@ lock 方法调用了父类 AbstractQueuedSynchronizer 的模版方法 acquire，
                 }
 
 				// FairSync
-				// 判断是否有任何线程等待获取的时间长于当前线程
+				// 判断是否有任何线程排队等待获取早于当前线程
                 if (!hasQueuedPredecessors() &&
                         // CAS 原子操作加锁，尝试把 0 设置成指定值
                     compareAndSetState(0, acquires)) {
@@ -436,7 +436,7 @@ lock 方法调用了父类 AbstractQueuedSynchronizer 的模版方法 acquire，
                 }
 ```
 
-不同点上文也介绍了，再重复一下，主要是在 if 调用 CAS 原子操作加锁时，FairSync 多了一步 hasQueuedPredecessors，判断是否有任何线程等待获取的时间长于当前线程，如果没有比当前线程等待时间更长的，再去 CAS 加锁，这也是公平锁的体现。
+不同点上文也介绍了，再重复一下，主要是在 if 调用 CAS 原子操作加锁时，FairSync 多了一步 hasQueuedPredecessors，判断是否有任何线程排队等待早于当前线程，如果没有比当前线程排队等待获取更早的，再去 CAS 加锁，这也是公平锁的体现。
 
 ## ReentrantLock 的 unlock 方法
 

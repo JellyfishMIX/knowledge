@@ -1,4 +1,4 @@
-# redis原生命令
+# redis -rdm 原生命令对照表
 
 命令执行效果可参考rdm(redis desktop manager)。
 

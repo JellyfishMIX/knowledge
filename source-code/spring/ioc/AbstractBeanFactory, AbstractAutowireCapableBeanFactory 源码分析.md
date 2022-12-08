@@ -1031,15 +1031,16 @@ org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#pop
 2. 给 InstantiationAwareBeanPostProcessor 最后一次机会在属性设置前来改变 bean。
    1. 遍历当前 beanFactory 的所有 BeanPostProcessor，InstantiationAwareBeanPostProcessor 的实例可执行 postProcessAfterInstantiation 方法。
    2. 只要有一个 InstantiationAwareBeanPostProcessor 返回 false，都会终止属性填充。
-3. 获取 mbd 的 autowireMode 自动装配模式，byName or byType，把所有属性统一存入到 propertyValues(pvs) 中。
-4.  这里 autowireMode 不是 @Autowired 注解的含义，指的是 xml 方式 bean 标签中设置的一个 BeanDefinition 属性，启用后会对 beanClass 中所有拥有 setter 方法的成员属性当作 bean 进行注入。
-5. 如果当前 beanFactory 拥有 InstantiationAwareBeanPostProcessor，执行相关逻辑。
+3. 获取 mbd 的 autowireMode 自动装配模式，byName or byType，把所有属性统一存入 propertyValues(pvs) 中。
+   1. 这里 autowireMode 不是 @Autowired 注解的含义，指的是 xml 方式 bean 标签中设置的一个 BeanDefinition 属性，启用后会对 beanClass 中所有拥有 setter 方法的成员属性当作 bean 进行注入。
+
+4. 如果当前 beanFactory 拥有 InstantiationAwareBeanPostProcessor，执行相关逻辑。
    1. 成员属性值的后置处理，通过 InstantiationAwareBeanPostProcessor 的 postProcessProperties 方法。（老的 api 是 postProcessPropertyValues）。通过注解注入 bean，就是在这里做的。
    2. 成员属性值的后置处理，新 api。spring 的默认实现是 AutowiredAnnotationBeanPostProcessor.postProcessProperties。
    3. AutowiredAnnotationBeanPostProcessor 中完成了 @Autowired, @Value 等注解的自动注入功能。大概逻辑是，获取被 @Autowired 修饰的属性或者方法，如果是属性，则通过 getBean 获取 bean 并注入。如果是 setter 方法，则获取方法参数后，invoke 方法，给属性赋值。
    4. 把通过 InstantiationAwareBeanPostProcessor 获得的 PropertyValues 赋值给局部变量 pvs。
-6. bean 的依赖检查。
-7. 调用 applyPropertyValues 方法，将获取的 propertyValue 设置到 bean 中。
+5. bean 的依赖检查。
+6. 调用 applyPropertyValues 方法，将获取的 propertyValue 设置到 bean 中。
 
 ```java
 	/**
