@@ -10,13 +10,13 @@ BeanPostProcessor 是 spring-ioc 提供的重要的扩展接口，spring 内部�
 
 BeanPostProcessor 接口提供了两个方法分别在 bean 初始化之前和之后进行调用。
 
-1. postProcessBeforeInitialization 方法，在 bean 初始化前调用，此时 bean 的属性注入已经完成，但还未调用 bean 但 init 方法进行初始化
+1. postProcessBeforeInitialization 方法，在 bean 初始化前调用，此时 bean 的属性注入已经完成，但还未调用 bean 实例的 init 方法进行初始化。
 2. postProcessAfterInitialization 方法，在 bean 初始化后调用，此时 bean 的属性注入已经完成，且已经通过 init 方法初始化完了。
 
 ```java
 public interface BeanPostProcessor {
 	/**
-	 * 在 bean 初始化前调用，此时 bean 的属性注入已经完成，但还未调用 bean 但 init 方法进行初始化
+	 * 在 bean 初始化前调用，此时 bean 的属性注入已经完成，但还未调用 bean 的 init 方法进行初始化
 	 */
 	@Nullable
 	default Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -86,7 +86,9 @@ public interface BeanPostProcessor {
 
 ## BeanPostProcessor 的创建(注册)
 
-spring-ioc 机制中，bean 的创建并非仅仅通过反射创建就结束了。在创建过程中，BeanDefinition 中不仅包含了 bean 的 class 文件信息，还包含了当前 bean 对应 spring-ioc 中的一些属性，比如 scope 作用域, lazyInit 是否懒加载, alias 别名等信息。当 bean 进行实例化创建时，需要依赖于对应的 BeanDefinition 提供对应的信息。
+spring-ioc 机制中，bean 的创建并非仅仅通过反射创建就结束了。当 bean 进行实例化创建时，需要依赖于对应的 BeanDefinition 提供对应的信息。
+
+在创建过程中，BeanDefinition 中不仅包含了 bean 的 class 文件信息，还包含了当前 bean 对应 spring-ioc 中的一些属性，比如 scope 作用域, lazyInit 是否懒加载, alias 别名等信息。
 
 bean 的创建有两个步骤: bean 对应的 BeanDefinition 的创建，bean 实例的创建。BeanPostProcessor 本质也是 bean，也遵循这两个步骤。
 

@@ -782,10 +782,11 @@ org.springframework.context.support.AbstractApplicationContext#registerListeners
 
 org.springframework.context.support.AbstractApplicationContext#finishBeanFactoryInitialization
 
+非延迟地初始化剩余 bean 实例，这里实例化 bean 调用了 ConfigurableListableBeanFactory#getBean 方法。
+
 1. 设置 conversionService: 如果 beanFactory 中加载了 beanName 为 conversionService 的 bean，并且类型是 ConversionService，那么将其设置为 conversionService。通过 `ConversionService` 的配置可以很轻松完成一些类型转换工作。
 2. 冻结 beanFactory 中所有 beanDefinition，表示已注册的 beanDefinition 不会再修改或 post-process
-3. 初始化所有非惰性单例 bean。
-4. ApplicationContext 默认在启动时，将所有单例 bean 进行实例化。这个实例化的过程就就是在 ConfigurableListableBeanFactory#preInstantiateSingletons 方法中完成的。
+3. 初始化所有非惰性单例 bean，在 ConfigurableListableBeanFactory#preInstantiateSingletons 方法中完成。
 
 ```java
 	/**
@@ -843,7 +844,7 @@ org.springframework.beans.factory.support.DefaultListableBeanFactory#preInstanti
 3. 如果是非抽象 && 单例 && 非惰性加载的 bean，则进行初始化。
    1. 如果是 FactoryBean 类型，则拼接 & 这个转译前缀，来获取 FactoryBean 实例本身。
    2. 非 FactoryBean 则直接调用 getBean 来实例化 bean。
-4. 触发所有 SmartInitializingSingleton 实例 bean 的 afterSingletonsInstantiated 回调方法，属于生命周期函数。
+4. 触发所有实现 SmartInitializingSingleton 接口的 bean 实例的 afterSingletonsInstantiated 回调方法，属于生命周期函数。
 
 ```java
 	/**
@@ -945,10 +946,13 @@ org.springframework.context.support.AbstractApplicationContext#finishRefresh
 完成刷新过程，调用生命周期处理器 LifecycleProcessor#onRefresh 方法，并且发布 ContextRefreshEvent。
 
 1. 清除资源缓存。
-2. 当 Application 启动或停止时，会触发 LifecycleProcessor 实现 bean 的回调函数(生命周期函数)。在 LifecycleProcessor 使用前需要初始化，这里进行了 LifecycleProcessor 的初始化。
-   1. spring 中还提供的 Lifecycle 接口，包含 start, stop 方法，实现此接口后 spring 保证在 Application 启动时调用其 start 方法(作为生命周期函数)，在 spring 关闭时调用 stop 方法(生命周期函数)，通常用来配置后台程序，在启动后一直运行(如 MQ 进行轮询等)。而 AbstractApplicationContext#finishRefresh 方法保证了这一功能的实现。
-3. 当 ApplicationContext#refresh 方法完成的时候，要通过 spring 中的事件发布机制，发布 ContextRefreshedEvent，以保证对应的 listener 可以感知后做进一步的处理。
-4. 在 LiveBeansView 中注册 ApplicationContext，LiveBeansView 提供通过 JMX 实时查看 ApplicationContext 里的 bean 列表的能力。
+2. 初始化 LifecycleProcessor。
+3. 触发实现 LifecycleProcessor 的 bean 实例的回调函数(生命周期函数)。
+   1. spring 中提供的 Lifecycle 接口(LifecycleProcessor 是其子接口)，包含 start, stop 方法。
+   2. 实现此接口后 spring 保证在 Application 启动时调用其 start 方法(作为生命周期函数)，在 spring 关闭时调用 stop 方法(生命周期函数)。
+   3. 此机制通常用来配置后台程序，在启动后一直运行(如 MQ 进行轮询等)。
+4. 当 ApplicationContext#refresh 方法完成的时候，要通过 spring 中的事件发布机制，发布 ContextRefreshedEvent，以保证对应的 listener 可以感知后做进一步的处理。
+5. 在 LiveBeansView 中注册 ApplicationContext，LiveBeansView 提供通过 JMX 实时查看 ApplicationContext 里的 bean 列表的能力。
 
 ```java
 	/**
@@ -964,16 +968,18 @@ org.springframework.context.support.AbstractApplicationContext#finishRefresh
 		// 清除资源缓存
 		clearResourceCaches();
 
-		/*
-		 * Initialize lifecycle processor for this context.
-		 *
-		 * 当 Application 启动或停止时，会触发 LifecycleProcessor 实现 bean 的回调函数(生命周期函数)
-		 * 在 LifecycleProcessor 使用前需要初始化，这里进行了 LifecycleProcessor 的初始化。
-		 */
+		// Initialize lifecycle processor for this context.
+		// 初始化 LifecycleProcessor
 		initLifecycleProcessor();
 
-		// Propagate refresh to lifecycle processor first.
-		// 触发 LifecycleProcessor 实现 bean 的回调函数(生命周期函数)
+		/*
+		 * Propagate refresh to lifecycle processor first.
+		 *
+		 * 触发实现 LifecycleProcessor 的 bean 实例的回调函数(生命周期函数)。
+		 * spring 中提供的 Lifecycle 接口(LifecycleProcessor 是其子接口)，包含 start, stop 方法。
+		 * 实现此接口后 spring 保证在 Application 启动时调用其 start 方法(作为生命周期函数)，在 spring 关闭时调用 stop 方法(生命周期函数)。
+		 * 此机制通常用来配置后台程序，在启动后一直运行(如 MQ 进行轮询等)。
+		 */
 		getLifecycleProcessor().onRefresh();
 
 		/*

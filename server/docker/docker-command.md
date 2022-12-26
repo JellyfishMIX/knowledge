@@ -8,7 +8,7 @@
 // 运行镜像（images）
 docker run xxx(name)
 // 停止镜像
-docker stop xxx(IMAGE ID)
+docker stop xxx(contianer ID)
 // 查看本地镜像（images）
 docker images
 // 删除本地镜像（images）

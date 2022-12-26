@@ -1,4 +1,4 @@
-# git-commonly-used-commands
+# git-command
 
 
 
@@ -225,6 +225,24 @@ git config user.email
 ```csharp
 git config --global user.name "your name"
 git config --global user.email "your email"
+```
+
+
+
+# git reset
+
+讲解: [git 撤销操作 git reset详解](https://blog.csdn.net/qq_38987146/article/details/125149888)
+
+### git push -f 强制推送
+
+`git push -f` 是一个需要特别谨慎对待的指令。因为它完全无视先来后到的规则，会将提交历史一并覆盖掉。
+
+非特殊情况不建议使用，每次使用前请务必确认你知道自己在做什么，保持头脑清醒。
+
+强制推送代码到其他远程分支（中间有个：）
+
+```bash
+git push -f 远程仓库名 当前分支名:远程其他分支名
 ```
 
 

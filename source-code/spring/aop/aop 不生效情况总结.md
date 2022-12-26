@@ -1,4 +1,4 @@
-# aop 总结
+# aop 不生效情况总结
 
 
 
@@ -24,6 +24,6 @@
 
 ## 三种 aop 方式受方法修饰符影响
 
-1. jdk 是代理接口，private 方法没在接口里声明肯定切不到。
+1. jdk 动态代理是代理接口，private 方法没在接口里声明肯定切不到。
 2. cglib 是生成子类，private 方法子类无法继承，也切不到。
 3. aspectJ 编译期织入，直接改代码，private, static, final 都能织入。
