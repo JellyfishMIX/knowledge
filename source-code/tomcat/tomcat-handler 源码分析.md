@@ -110,7 +110,7 @@ org.apache.coyote.AbstractProcessorLight#process
 
 
 
-## service 方法
+## Http11Processor#service 方法
 
 org.apache.coyote.http11.Http11Processor#service
 
@@ -120,7 +120,7 @@ org.apache.coyote.http11.Http11Processor#service
 2. 获得 adapter 实例，调用 Adapter#service 方法。这里的 adapter 对象实例是 CoyoteAdapter 类型。
 
 ```java
-@Override
+	@Override
     public SocketState service(SocketWrapperBase<?> socketWrapper)
         throws IOException {
         // 初始化一些参数，略过
@@ -177,3 +177,76 @@ org.apache.coyote.http11.Http11Processor#service
     }
 ```
 
+
+
+## CoyoteAdapter#service 方法
+
+org.apache.catalina.connector.CoyoteAdapter#service
+
+CoyoteAdapter 适配器，适配了 connector 和 container，使 Connector 能调用到 Container。在这里面也完成了Request 和 Response 的类型转换，将 connector 模块中的 Request/Response 转换成了 container 中的。
+
+```java
+	@Override
+    public void service(org.apache.coyote.Request req, org.apache.coyote.Response res)
+            throws Exception {
+        // 将 org.apache.coyote 包下的 Request 和 Response, 转换成 org.apache.catalina.connector 包下的类型
+        Request request = (Request) req.getNote(ADAPTER_NOTES);
+        Response response = (Response) res.getNote(ADAPTER_NOTES);
+
+        if (request == null) {
+            // Create objects
+            request = connector.createRequest();
+            request.setCoyoteRequest(req);
+            response = connector.createResponse();
+            response.setCoyoteResponse(res);
+
+            // Link objects
+            request.setResponse(response);
+            response.setRequest(request);
+
+            // Set as notes
+            req.setNote(ADAPTER_NOTES, request);
+            res.setNote(ADAPTER_NOTES, response);
+
+            // Set query string encoding
+            req.getParameters().setQueryStringCharset(connector.getURICharset());
+        }
+        
+        // ...
+        
+        try {
+            // Parse and set Catalina and configuration specific
+            // request parameters
+            // 解析并设置 Catalina 核心属性和特定请求配置，如 host, context。根据请求路径来判断由哪个 StandardWrapper 处理这个请求也是在这里面完成的。
+            postParseSuccess = postParseRequest(req, request, res, response);
+            if (postParseSuccess) {
+                //check valves if we support async
+                request.setAsyncSupported(
+                        connector.getService().getContainer().getPipeline().isAsyncSupported());
+                // Calling the container
+                // 调用进 Container 中，这里是关键，由 Connector 模块调用进了 Container，完成两者的适配
+                connector.getService().getContainer().getPipeline().getFirst().invoke(
+                        request, response);
+            }
+            // ...
+        } catch (IOException e) {
+            // Ignore
+        } finally {
+            // ...
+        }
+    }
+```
+
+
+
+## tomcat 的管道
+
+1. tomcat 由 connector 和 container 两部分组成，当请求过来时 connector 先将请求包装为 request，然后传递给 container 进行处理，最终返回给请求方。
+2. tomcat-container 按照包含关系一共有 4 个容器: StandardEngine, StandardHost, StandardContext, StandardWrapper. 
+3. wrapper 表示一个 servlet，context 表示一个 web 应用程序，一个 web 应用程序中可能有多个 servlet。host 表示一个虚拟主机，一个虚拟主机里可能运行着多个 web 应用程序。engine 控制一个虚拟主机的生命周期。
+
+2. container 处理的第一层就是 engine 容器，engine 容器不会直接调用 host 容器去处理请求，请求在 4 个容器中传递依靠管道。调用 pipeline 组件传递请求，跟 pipeline 相关的，还有个也是 container 内部的组件，叫做 valve 组件。
+
+在Catalina中，我们有4种容器，每个容器都有自己的Pipeline组件，每个Pipeline组件上至少会设定一个Valve(阀门)，这个Valve我们称之为BaseValve（基础阀）。基础阀的作用是连接当前容器的下一个容器(通常是自己的自容器),可以说基础阀是两个容器之间的桥梁。
+
+Pipeline定义对应的接口Pipeline,标准实现了StandardPipeline。Valve定义对应的接口Valve,抽象实现类ValveBase,4个容器对应基础阀门分别是StandardEngineValve,StandardHostValve,StandardContextValve,StandardWrapperValve。

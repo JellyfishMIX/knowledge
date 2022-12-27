@@ -189,11 +189,11 @@ org.apache.tomcat.util.net.NioEndpoint#serverSocketAccept
     }
 ```
 
-### ServerSocketChannelImpl
+### ServerSocketChannelImpl#accept() 方法
 
 sun.nio.ch.ServerSocketChannelImpl#accept()
 
-获取绑定地址收到的 socket，如果有则返回，没有则一直监听地址是否有新的 socket。无限轮询造成阻塞效果。注意这里接收的 socket 只是连接，不是具体的请求数据。
+获取绑定地址收到的 socket，如果有则返回，没有则无限循环监听地址是否有新的 socket，无限循环成阻塞效果。注意这里接收的 socket 只是连接，不是具体的请求数据。
 
 ```java
 class ServerSocketChannelImpl extends ServerSocketChannel
