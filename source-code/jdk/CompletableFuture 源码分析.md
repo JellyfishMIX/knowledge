@@ -115,7 +115,7 @@ uniApplyStage 方法及其调用的方法，由于我的水平不足，暂未有
 
 
 
-学习了 thenApply 和 thenCompose 的区别。
+## thenApply 和 thenCompose 的区别
 
 1. thenApply 接收一个函数作为参数，使用此函数处理上一个 CompletableFuture 计算步骤的结果，此函数的返回结果作为本次计算步骤的 result。
 2. thenCompose 接收一个函数作为参数，此函数需返回 CompletableFuture 实例。此函数的入参是先前 CompletableFuture 计算步骤的结果。
@@ -124,3 +124,63 @@ uniApplyStage 方法及其调用的方法，由于我的水平不足，暂未有
 
 对 CompletableFuture 的 api 讲解比较清楚的一篇文章 CompletableFuture中whenComplete()和thenApply() 区别? - 程序员子龙的回答 - 知乎
 https://www.zhihu.com/question/433003386/answer/2295290317
+
+
+
+## 哪个线程执行 CompletableFuture 的任务和回调
+
+### CompletableFuture 提交的任务
+
+1. 异步执行的 supplyAsync(() -> {}) 方法，类似于 ExecutorService.submit()。提交任务至线程池后返回 CompletableFuture。
+2. 未显式指定线程池时，使用默认的 ForkJoinPool.commonPool()，一个 ForkJoinPool 的类属性，单例。即 ForkJoinPool.commonPool() 是一个全局单例的线程池，线程池配置为硬编码与当前本地机器有关，配置不可手动修改，只是一个默认的实现并不推荐使用。
+3. 这导致同一 JVM 上的所有应用各代码位置共享同一个线程池，此线程池配置不可修改不可控，没有资源隔离。因此应该显式指定自定义的线程池，替换掉默认的线程池。
+
+```java
+// 未显式指定线程池，使用默认线程池 ForkJoinPool.commonPool()
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            try (
+                InputStream is = new URL("http://www.baidu.com").openStream()) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+// 显式指定线程池，使用自定义的线程池
+private static ExecutorService diyThreadPoolExecutor = new ThreadPoolExecutor(...);
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            try (
+                InputStream is = new URL("http://www.baidu.com").openStream()) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, diyThreadPoolExecutor);
+```
+
+### 处理 CompletableFuture 结果的回调函数
+
+1. 当 future 有了结果后，thenApply 中的回调函数需要被执行，此回调函数由何线程执行看具体情况。
+
+2. 如果执行原始任务的线程池未关闭，则使用原始任务所用的线程池，执行回调函数。如果原始任务所用的线程池已关闭，则在调用 thenApply 方法的 main 线程中同步地执行回调函数。
+
+```java
+private static ExecutorService diyThreadPoolExecutor = new ThreadPoolExecutor(...);
+CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+            try (
+                InputStream is = new URL("http://www.baidu.com").openStream()) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, diyThreadPoolExecutor);
+
+CompletableFuture<Integer> intFuture = future.thenApply(s -> s.length());
+```
+
+
+
+## CompletableFuture 应用场景
+
+1. 通常用在需要返回值的异步计算，如果不需要返回值，直接使用线程池即可。
+2. 需要返回值的异步计算返回 Future，CompletableFuture 作为实现者提供了友好的 api。

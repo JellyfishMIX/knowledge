@@ -287,7 +287,18 @@ curl -O http://www.linux.com/dodo1.JPG
 
 这样就会以服务器上的名称保存文件到本地
 
-循环下载
+#### 将 curl 输出保存到文件
+
+我们可以使用 -o/-O 选项将 curl 命令的结果保存到文件中。
+
+- -o（小写 o）结果将保存在命令行中提供的文件名中
+- -O（大写O）URL中的文件名将被用作存储结果的文件名
+
+```bash
+curl -o mygettext.html http://www.gnu.org/software/gettext/manual/gettext.html
+```
+
+#### 循环下载
 
 有时候下载图片可以能是前面的部分名称是一样的，就最后的尾椎名不一样
 
@@ -297,7 +308,7 @@ curl -O http://www.linux.com/dodo[1-5].JPG
 
 这样就会把 dodo1，dodo2，dodo3，dodo4，dodo5 全部保存下来
 
-下载重命名
+#### 下载重命名
 
 ```bash
 curl -O http://www.linux.com/{hello,bb}/dodo[1-5].JPG
@@ -311,7 +322,8 @@ curl -o #1_#2.JPG http://www.linux.com/{hello,bb}/dodo[1-5].JPG
 
 这样在 hello/dodo1.JPG 的文件下载下来就会变成 hello_dodo1.JPG，其他文件依此类推，从而有效的避免了文件被覆盖
 
-分块下载
+#### 分块下载
+
 有时候下载的东西会比较大，这个时候我们可以分段下载。使用内置 option：-r
 
 ```bash
@@ -323,7 +335,8 @@ cat dodo1_part* > dodo1.JPG
 
 这样就可以查看 dodo1.JPG 的内容了
 
-通过ftp下载文件
+#### 通过ftp下载文件
+
 curl可以通过ftp下载文件，curl提供两种从ftp中下载的语法
 
 ```bash
@@ -331,13 +344,13 @@ curl -O -u 用户名:密码 ftp://www.linux.com/dodo1.JPG
 curl -O ftp://用户名:密码@www.linux.com/dodo1.JPG
 ```
 
-显示下载进度条
+#### 显示下载进度条
 
 ```bash
 curl -# -O http://www.linux.com/dodo1.JPG
 ```
 
-不会显示下载进度信息
+#### 不会显示下载进度信息
 
 ```bash
 curl -s -O http://www.linux.com/dodo1.JPG

@@ -2,6 +2,14 @@
 
 
 
+## 说明
+
+1. 本文基于 jdk 8, spring-framework 5.2.x 编写。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+
+
+
 ## BeanPostProcessor
 
 什么是 BeanPostProcessor
@@ -36,6 +44,8 @@ public interface BeanPostProcessor {
 
 
 ## BeanPostProcessor 的调用时机
+
+org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#initializeBean
 
 1. AbstractAutowireCapableBeanFactory#doCreateBean -> AbstractAutowireCapableBeanFactory#initializeBean 方法中，执行 invokeInitMethods 方法，调用 bean 的 init 方法及此阶段相关生命周期函数来初始化 bean。
 
@@ -80,19 +90,47 @@ public interface BeanPostProcessor {
 		// 返回 wrappedBean
 		return wrappedBean;
 	}
+
+	@Override
+	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
+			throws BeansException {
+
+		Object result = existingBean;
+		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			Object current = processor.postProcessBeforeInitialization(result, beanName);
+			if (current == null) {
+				return result;
+			}
+			result = current;
+		}
+		return result;
+	}
+
+	@Override
+	public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
+			throws BeansException {
+
+		Object result = existingBean;
+		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			Object current = processor.postProcessAfterInitialization(result, beanName);
+			if (current == null) {
+				return result;
+			}
+			result = current;
+		}
+		return result;
+	}
 ```
 
 
 
 ## BeanPostProcessor 的创建(注册)
 
-spring-ioc 机制中，bean 的创建并非仅仅通过反射创建就结束了。当 bean 进行实例化创建时，需要依赖于对应的 BeanDefinition 提供对应的信息。
-
-在创建过程中，BeanDefinition 中不仅包含了 bean 的 class 文件信息，还包含了当前 bean 对应 spring-ioc 中的一些属性，比如 scope 作用域, lazyInit 是否懒加载, alias 别名等信息。
+spring-ioc 机制中，bean 的创建并非仅进行反射，还需要依赖于对应的 BeanDefinition 提供对应的信息。BeanDefinition 中不仅包含了 bean 的 class 文件信息，还包含了当前 bean 对应 spring-ioc 中的一些属性，比如 scope 作用域, lazyInit 是否懒加载, alias 别名等信息。
 
 bean 的创建有两个步骤: bean 对应的 BeanDefinition 的创建，bean 实例的创建。BeanPostProcessor 本质也是 bean，也遵循这两个步骤。
 
-1. BeanPostProcessor 的 BeanDefinition 创建时机和普通 bean 没有区别，都是在 spring application 启动时执行 AbstractApplicationContext#refresh 方法时的 BeanFactoryPostProcessor 中完成(确切地说是 ConfigurationClassPostProcessor 中完成的)。
+1. BeanPostProcessor 的 BeanDefinition 创建时机和普通 bean 的 BeanDefinition 没有区别，都是在 spring application 启动时执行 AbstractApplicationContext#refresh 方法时的 BeanFactoryPostProcessor 中完成(确切地说是 ConfigurationClassPostProcessor 中完成的)。
 2. 由于 BeanPostProcessor 参与了 bean 的创建过程，所以其创建一定在普通 bean 之前。BeanPostProcessor 的创建是在 spring application 启动时，AbstractApplicationContext#refresh 的地方。
    1. refresh 方法调用了 registerBeanPostProcessors 方法，从 beanFactory 中获取到所有 BeanPostProcessor 类型的beanName，通过 BeanFactory#getBean 方法获取到对应实例，进行排序后注册到 BeanFactory.beanPostProcessors 属性中。当需要使用 BeanPostProcessor 时，直接从 beanPostProcessors 中获取即可。
 
