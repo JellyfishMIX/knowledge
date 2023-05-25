@@ -1,4 +1,4 @@
-## 源码梳理计划
+## todo-learn
 
 
 
@@ -139,6 +139,7 @@ dubbo 中的 aop 机制。
 2. guava MoreExecutors
 3. list, set 切分
 4. ImmutableList
+5. Splitter, Joiner
 
 
 
@@ -155,6 +156,12 @@ dubbo 中的 aop 机制。
 Condition
 
 CountDownLuntch
+
+
+
+## kafka
+
+1. kafka 既然是 consumer 主动拉取，为什么还会触发拒绝策略? 影响 consumer 拉取速度的因素? 为什么都拉取到触发拒绝策略了，consumer 还在拉取?
 
 
 

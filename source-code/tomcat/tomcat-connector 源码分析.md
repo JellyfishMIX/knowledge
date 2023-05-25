@@ -621,7 +621,7 @@ org.apache.tomcat.util.net.NioEndpoint.Poller#processKey
 
 ## AbstractEndpoint#processSocket 方法
 
-org.apache.tomcat.util.net.AbstractEndpoint#processSockett
+org.apache.tomcat.util.net.AbstractEndpoint#processSocket
 
 处理 socket。
 
