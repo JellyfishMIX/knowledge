@@ -1,4 +1,4 @@
-## todo-learn
+## todo-learn 学习
 
 
 
@@ -130,6 +130,12 @@ dubbo 依赖了 netty，了解到 dubbo 底层使用 netty 进行通信。但是
 dubbo provider 的代码没有运行在 tomcat 里，dubbo 内置了一个 netty，provider 的代码在 netty 中运行。
 
 dubbo 中的 aop 机制。
+
+
+
+## sentinel 限流
+
+1. 源码分析
 
 
 

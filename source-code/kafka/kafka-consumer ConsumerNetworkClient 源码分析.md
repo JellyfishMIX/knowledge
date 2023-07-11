@@ -2,6 +2,14 @@
 
 
 
+## 说明
+
+1. 本文基于 kafka 2.7 编写。
+2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
+3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
+
+
+
 ## ConsumerNetworkClient 属性
 
 org.apache.kafka.clients.consumer.internals.ConsumerNetworkClient
@@ -167,7 +175,7 @@ org.apache.kafka.clients.consumer.internals.ConsumerNetworkClient#trySend
     }
 ```
 
-### NetworkClient#poll
+### NetworkClient#poll -- 真正把 ClientRequest 发送到网络中
 
 org.apache.kafka.clients.NetworkClient#poll
 
@@ -195,6 +203,7 @@ socket 相关网络 IO，真正把 ClientRequest 发送到网络中。
         }
 
         // process completed actions
+        // 使用一系列 handle 方法处理 response
         long updatedNow = this.time.milliseconds();
         List<ClientResponse> responses = new ArrayList<>();
         handleCompletedSends(responses, updatedNow);
@@ -204,7 +213,6 @@ socket 相关网络 IO，真正把 ClientRequest 发送到网络中。
         handleTimedOutRequests(responses, updatedNow);
 
         // invoke callbacks
-        // 使用一系列 handle 方法处理 response
         for (ClientResponse response : responses) {
             if (response.request().hasCallback()) {
                 try {
