@@ -505,3 +505,100 @@ org.apache.kafka.clients.producer.internals.BufferPool#deallocate(java.nio.ByteB
     }
 ```
 
+
+
+## 个人思考
+
+### RecordAccumulator 清理过期 batch 未自闭合
+
+个人认为 RecordAccumulator 清理过期 batch 时未自闭合。
+
+org.apache.kafka.clients.producer.internals.Sender#sendProducerData
+
+1. 先由 sender 调用了 RecordAccumulator#expiredBatches 方法，过期 batch 出队。释放 batch 占用的内存靠调用处 (sender)自行调用另一个 api RecordAccumulator#deallocate。
+
+2. 如果调用处(sender) 未调用 RecordAccumulator#deallocate 释放内存，可能导致内存泄漏。
+
+3. 个人理解 RecordAccumulator 应该自闭合清理过期 batch 的操作，在一个 api 内保证过期 batch 出队时，调用自身 deallocate 方法释放内存，避免调用处疏忽导致内存泄漏。
+
+```java
+/**
+     * 消息预发送, 把消息传递给 KafkaChanel 缓存
+     */
+    private long sendProducerData(long now) {
+        // ...
+
+        // create produce requests
+        // 把按分区聚合的请求集合, 转换为按节点聚合的请求集合(因为网络 IO 是按节点发请求)
+        Map<Integer, List<ProducerBatch>> batches = this.accumulator.drain(cluster, result.readyNodes, this.maxRequestSize, now);
+        addToInflightBatches(batches);
+        if (guaranteeMessageOrder) {
+            // Mute all the partitions drained
+            for (List<ProducerBatch> batchList : batches.values()) {
+                for (ProducerBatch batch : batchList)
+                    this.accumulator.mutePartition(batch.topicPartition);
+            }
+        }
+
+        accumulator.resetNextBatchExpiryTime();
+        // 收集过期的 batch
+        // Sender#inflightBatches 发送中的请求集合里过期的 batch
+        List<ProducerBatch> expiredInflightBatches = getExpiredInflightBatches(now);
+        // RecordAccumulator#batches 集合里过期的 batch
+        List<ProducerBatch> expiredBatches = this.accumulator.expiredBatches(now);
+        expiredBatches.addAll(expiredInflightBatches);
+
+        // Reset the producer id if an expired batch has previously been sent to the broker. Also update the metrics
+        // for expired batches. see the documentation of @TransactionState.resetIdempotentProducerId to understand why
+        // we need to reset the producer id here.
+        if (!expiredBatches.isEmpty())
+            log.trace("Expired {} batches in accumulator", expiredBatches.size());
+        for (ProducerBatch expiredBatch : expiredBatches) {
+            String errorMessage = "Expiring " + expiredBatch.recordCount + " record(s) for " + expiredBatch.topicPartition
+                + ":" + (now - expiredBatch.createdMs) + " ms has passed since batch creation";
+            // 处理过期 batch，内部调用 RecordAccumulator#deallocate 释放了过期 batch 占用的内存
+            failBatch(expiredBatch, -1, NO_TIMESTAMP, new TimeoutException(errorMessage), false);
+            if (transactionManager != null && expiredBatch.inRetry()) {
+                // This ensures that no new batches are drained until the current in flight batches are fully resolved.
+                transactionManager.markSequenceUnresolved(expiredBatch);
+            }
+        }
+        sensors.updateProduceRequestMetrics(batches);
+
+        // ...
+        return pollTimeout;
+    }
+```
+
+
+
+org.apache.kafka.clients.producer.internals.RecordAccumulator#expiredBatches
+
+```java
+    /**
+     * Get a list of batches which have been sitting in the accumulator too long and need to be expired.
+     */
+    public List<ProducerBatch> expiredBatches(long now) {
+        List<ProducerBatch> expiredBatches = new ArrayList<>();
+        for (Map.Entry<TopicPartition, Deque<ProducerBatch>> entry : this.batches.entrySet()) {
+            // expire the batches in the order of sending
+            Deque<ProducerBatch> deque = entry.getValue();
+            synchronized (deque) {
+                while (!deque.isEmpty()) {
+                    ProducerBatch batch = deque.getFirst();
+                    if (batch.hasReachedDeliveryTimeout(deliveryTimeoutMs, now)) {
+                        // 过期 batch 出队。释放 batch 占用的内存靠调用处自行调用另一个 api RecordAccumulator#deallocate
+                        deque.poll();
+                        batch.abortRecordAppends();
+                        expiredBatches.add(batch);
+                    } else {
+                        maybeUpdateNextBatchExpiryTime(batch);
+                        break;
+                    }
+                }
+            }
+        }
+        return expiredBatches;
+    }
+```
+

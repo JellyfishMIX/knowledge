@@ -4,7 +4,7 @@
 
 ## 说明
 
-1. 本文基于 kafka 2.7 编写。
+1. 本文基于 kafka 0.10.0 编写。
 2. @author [JellyfishMIX - github](https://github.com/JellyfishMIX) / [blog.jellyfishmix.com](http://blog.jellyfishmix.com)
 3. LICENSE [GPL-2.0](https://github.com/JellyfishMIX/GPL-2.0)
 

@@ -351,7 +351,7 @@ org.apache.kafka.common.utils.SystemTime#waitObject
 
 
 
-## ProducerMetadata#update 方法 -- 触发更新 metadata
+## ProducerMetadata#update 方法 -- 更新 metadata，唤醒等待元数据更新而阻塞的线程
 
 org.apache.kafka.clients.producer.internals.ProducerMetadata#update
 

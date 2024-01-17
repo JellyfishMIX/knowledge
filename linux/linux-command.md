@@ -356,6 +356,13 @@ curl -# -O http://www.linux.com/dodo1.JPG
 curl -s -O http://www.linux.com/dodo1.JPG
 ```
 
+### 借助 python 文件下载
+
+```bash
+# 开启文件服务器
+python -m SimpleHTTPServer 8000
+```
+
 ### 防火墙
 
 centos 7 防火墙相关命令，centos 7 请使用 systemctl 命令
@@ -1091,7 +1098,7 @@ curl -O -u 用户名:密码 ftp://www.linux.com/dodo1.JPG
 curl -O ftp://用户名:密码@www.linux.com/dodo1.JPG
 ```
 
-#### 显示下载进度条
+#### 显示下载进度条 
 
 ```
 curl -# -O http://www.linux.com/dodo1.JPG
@@ -1101,6 +1108,33 @@ curl -# -O http://www.linux.com/dodo1.JPG
 
 ```
 curl -s -O http://www.linux.com/dodo1.JPG
+```
+
+
+
+## 常用 command
+
+### grep Error creating bean
+
+```bash
+grep 'org.springframework' error.log
+
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'consumerFactory' defined in class path resource [kafka-consumer.xml]: Bean instantiation via constructor failed; nested exception is java.lang.NoClassDefFoundError: org/springframework/core/log/LogAccessor
+```
+
+### cpu load
+
+查看CPU load的方法很多，我经常用个最简单的命令：uptime
+
+```bash
+[linux@b28-34-98 ~]$ uptime
+16:09:32 up 530 days, 1 min, 1 user, load average: 2.71, 2.44, 1.99
+```
+
+命令结果的后三位就是load的值了，分别代表1分钟、5分钟、15分钟的平均值。因为是平均值，15分钟更能代表系统的整体负载情况，如果1分钟的值很高，其他两个值很低，只能说明系统有瞬间的高负载。如果15分钟内，系统的平均负载都很大，表明问题持续存在，不是暂时现象。
+
+```java
+uptime
 ```
 
 

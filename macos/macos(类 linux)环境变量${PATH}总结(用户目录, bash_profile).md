@@ -1,4 +1,4 @@
-# macos(类 linux)环境变量${PATH}总结
+# macos(类 linux)环境变量${PATH}总结(用户目录, bash_profile)
 
 
 
@@ -52,7 +52,7 @@ MAC OS X环境的所有配置以及加载顺序如下：
 
 前两个环境配置在系统启动时候就会加载，针对所有用户生效，后面四个属于具体用户级别的配置
 ~/.bash_profile，~/.bash_login，~/.profile依次加载，如果~/.bash_profile不存在，依次加载后面几个文件；如果~/.bash_profile文件存在，后面几个文件不会加载
-~/.bashrc （或者~/.zshrc ）是bash shell打开时候加载
+~/.bashrc （或者~/.zshrc）是bash shell打开时候加载
 ~/.bashrc （或者~/.zshrc）的区别                                                                        zsh终端命令工具的全局变量设置，和bashrc区别是 默认很多linux系统是base，就配置在bashrc里，如里是使用zsh 就配置在 zshrc里，zsh是比bash更强大shell
 
 

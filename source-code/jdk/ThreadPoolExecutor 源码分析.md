@@ -273,3 +273,52 @@ java.util.concurrent.ThreadPoolExecutor#runWorker
    1. 如果是非核心线程，将会调用带有超时时间的 poll 方法，去存储任务的阻塞队列中尝试获取任务，超时时间就是 设置的 keepAliveTime。
    2. 如果是核心线程，将会调用 take 方法一直阻塞住，等待从任务队列中获取任务，自然核心线程也就无法退出了。
 
+
+
+## ThreadPoolFactory
+
+举例一个普通业务中的自定义线程池 demo。
+
+1. A 线程创建 B 线程，B 线程会继承 A 线程的优先级和守护/非守护，因此要重置一下。目的是:
+   1. 优先级应该是平等的，这样塞进来的任务才能被公平地执行。
+   2. 普通业务的线程不能是 daemon 守护线程。
+
+```java
+public class ConsumerThreadFactory implements ThreadFactory {
+    private final ThreadGroup group;
+    private final AtomicInteger threadNumber = new AtomicInteger(0);
+    private final String namePrefix;
+
+    /**
+     * 构造函数传入业务含义的线程池名字 poolPrefix，方便追溯
+     *
+     * @param poolPrefix 自定义线程池名前缀
+     */
+    public ConsumerThreadFactory(String poolPrefix) {
+        SecurityManager s = System.getSecurityManager();
+        group = (s != null) ? s.getThreadGroup() :
+                Thread.currentThread().getThreadGroup();
+        if (StringUtils.isBlank(poolPrefix)) {
+            poolPrefix = "pool";
+        }
+        namePrefix = poolPrefix.concat("-thread-");
+    }
+
+    @Override
+    public Thread newThread(@NotNull Runnable r) {
+        Thread t = new Thread(group, r,
+                namePrefix + threadNumber.getAndIncrement(),
+                0);
+        // 重置为非守护线程
+        if (t.isDaemon()) {
+            t.setDaemon(false);
+        }
+        // 重置线程优先级
+        if (t.getPriority() != Thread.NORM_PRIORITY) {
+            t.setPriority(Thread.NORM_PRIORITY);
+        }
+        return t;
+    }
+}
+```
+

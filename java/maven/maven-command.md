@@ -50,3 +50,11 @@ mvn dependency:tree
 mvn dependency:tree -Dverbose -Dincludes=commons-lang3
 ```
 
+
+
+idea 不勾选 runner 委托代理 maven 的解决办法，执行以下命令重新构建 idea 的 maven 即可
+
+```java
+mvn idea:idea
+```
+

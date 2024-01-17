@@ -442,9 +442,9 @@ com.alibaba.dubbo.rpc.protocol.dubbo.DubboProtocol#openServer
             // 如果目标 exchangeServer 还没有，则创建并加入 exchangeServerMap 中
             if (server == null) {
                 serverMap.put(key, createServer(url));
-                // 如果目标 exchangeServer 已有，则重置其关联的 url
             } else {
                 // server supports reset, use together with override
+                // 如果目标 exchangeServer 已有，则重置其关联的 url
                 server.reset(url);
             }
         }
