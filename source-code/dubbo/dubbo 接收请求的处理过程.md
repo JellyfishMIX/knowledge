@@ -449,6 +449,7 @@ org.apache.dubbo.remoting.exchange.support.header.HeaderExchangeHandler#handleRe
                 }
             });
         } catch (Throwable e) {
+            // 注意这里，如果 provder 接口的实现有问题，reply 方法抛异常，会把异常堆栈返回给 consumer
             res.setStatus(Response.SERVICE_ERROR);
             res.setErrorMessage(StringUtils.toString(e));
             channel.send(res);
@@ -627,3 +628,8 @@ org.apache.dubbo.rpc.proxy.AbstractProxyInvoker#invoke
     }
 ```
 
+
+
+## 返回响应
+
+org.apache.dubbo.remoting.exchange.codec.ExchangeCodec#encodeResponse

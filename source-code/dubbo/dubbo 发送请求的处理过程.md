@@ -30,9 +30,9 @@ client 调用 invoker 时返回一个 future, dubbo 收到 server 的返回结�
 
 callback 是 client 调用 server, 发送 seq 后 server 无需在本次请求返回 resp, 而是 server 在可以写返回结果时，通过反向调用 client 接口的方式，把返回结果作为请求参数传递给 client。这样 client 的主线程无需阻塞。
 
+#### 回调如何保证调用到之前调用自己的同一台机器
 
-
-
+使用之前建立的 SocketChannel，继续用就可以天然地调用到之前调用自己的同一台机器。
 
 ![img](https://image-hosting.jellyfishmix.com/20230925155302.png)
 
@@ -212,6 +212,8 @@ org.apache.dubbo.rpc.cluster.support.wrapper.MockClusterInvoker#invoke
 
 ### AbstractClusterInvoker
 
+org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker#invoke
+
 invoke 方法在其父类 AbstractClusterInvoker 中实现的。
 
 1. 检查是否已销毁。
@@ -259,7 +261,7 @@ protected List<Invoker<T>> list(Invocation invocation) throws RpcException {
 }
 ```
 
-### AbstractDirectory#list 方法 -- 获取可用的 Invokers
+### AbstractDirectory#list 方法 -- 获取可用的 Invokers 集合
 
 ```java
 public List<Invoker<T>> list(Invocation invocation) throws RpcException {
@@ -271,11 +273,11 @@ public List<Invoker<T>> list(Invocation invocation) throws RpcException {
 }
 ```
 
-### DynamicDirectory#doList 方法 -- 获取可用的 Invokers
+### DynamicDirectory#doList 方法 -- 获取可用的 Invokers 集合(可以做路由机制)
 
 org.apache.dubbo.registry.integration.DynamicDirectory#doList
 
-1. 从 RouterChain 中获取invokers，内含过滤逻辑。
+1. 从 RouterChain 中获取invokers，内含过滤逻辑。这里可以做路由机制，比如根据自定义 id 参数，仅选择特定 id 环境的 invokers(qunar 的软路由理论依据~)。
 2. 此处可以看到日常调试过程中常见的问题，No provider available from registry。
 
 ```java
@@ -296,7 +298,7 @@ org.apache.dubbo.registry.integration.DynamicDirectory#doList
 
         try {
             // Get invokers from cache, only runtime routers will be executed.
-            // 从 RouterChain 中获取 invokers，内含过滤逻辑
+            // 从 RouterChain 中获取 invokers，内含过滤逻辑。这里可以做路由机制，比如根据自定义 id 参数，仅选择特定 id 环境的 invokers(qunar 的软路由理论依据~)。
             List<Invoker<T>> result = routerChain.route(getConsumerUrl(), invokers, invocation);
             return result == null ? BitList.emptyList() : result;
         } catch (Throwable t) {
@@ -311,8 +313,8 @@ org.apache.dubbo.registry.integration.DynamicDirectory#doList
 org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker#doInvoke
 
 1. 调用失败后，重试指定次数。
-2. 重试前，考虑到 invokers 可能有变更，重新获取可用的 invokers，并再次校验。
-3. 根据负载均衡策略，选出胜出的 invokers, 用于执行远程调用。
+2. 重试前，考虑到 invokers 可能有变更，重新获取可用的 invokers 集合，并再次校验。
+3. 根据负载均衡策略，选出要调用的 invoker, 用于执行远程调用。
 4. 调用 Invoker#invoke 方法，执行远程调用。
 
 ```java
@@ -367,7 +369,46 @@ org.apache.dubbo.rpc.cluster.support.FailoverClusterInvoker#doInvoke
     }
 ```
 
-### RandomLoadBalance -- 默认的负载均衡策略，随机选取 Invokers
+### 根据负载均衡策略，从 invoker 列表中选择要调用的 invoker -- AbstractClusterInvoker#select
+
+org.apache.dubbo.rpc.cluster.support.AbstractClusterInvoker#select
+
+1. 重点是 doSelect 方法，根据使用的 LoadBalance 策略，从 invoker 列表中选择要调用的 invoker。
+
+```java
+    protected Invoker<T> select(LoadBalance loadbalance, Invocation invocation,
+                                List<Invoker<T>> invokers, List<Invoker<T>> selected) throws RpcException {
+
+        if (CollectionUtils.isEmpty(invokers)) {
+            return null;
+        }
+        String methodName = invocation == null ? StringUtils.EMPTY_STRING : invocation.getMethodName();
+
+        boolean sticky = invokers.get(0).getUrl()
+            .getMethodParameter(methodName, CLUSTER_STICKY_KEY, DEFAULT_CLUSTER_STICKY);
+
+        //ignore overloaded method
+        if (stickyInvoker != null && !invokers.contains(stickyInvoker)) {
+            stickyInvoker = null;
+        }
+        //ignore concurrency problem
+        if (sticky && stickyInvoker != null && (selected == null || !selected.contains(stickyInvoker))) {
+            if (availableCheck && stickyInvoker.isAvailable()) {
+                return stickyInvoker;
+            }
+        }
+
+        Invoker<T> invoker = doSelect(loadbalance, invocation, invokers, selected);
+
+        if (sticky) {
+            stickyInvoker = invoker;
+        }
+
+        return invoker;
+    }
+```
+
+#### 举例，默认的负载均衡策略，随机选取 Invokers -- RandomLoadBalance
 
 org.apache.dubbo.rpc.cluster.loadbalance.RandomLoadBalance#doSelect
 

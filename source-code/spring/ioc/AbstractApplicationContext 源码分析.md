@@ -64,7 +64,7 @@ org.springframework.context.support.AbstractApplicationContext#refresh
 				/*
 				 * Invoke factory processors registered as beans in the context.
 				 *
-				 * 调用各种 BeanFactoryPostProcessor(BeanFactory 处理器)
+				 * 调用各种 BeanFactoryPostProcessor
 				 * 其中最关键的是 ConfigurationClassPostProcessor，在这里完成了配置类的解析，生成配置类的 BeanDefinition。
 				 */
 				invokeBeanFactoryPostProcessors(beanFactory);

@@ -30,6 +30,7 @@ Xss 栈大小。 就是创建线程后，分配给每一个线程的内存大小
 并发收集器设置
 -XX:+CMSIncrementalMode:设置为增量模式。适用于单CPU情况。
 -XX:ParallelGCThreads=n:设置并发收集器年轻代收集方式为并行收集时，使用的CPU数。并行收集线程数。
+-XX:AutoBoxCacheMax=20000 自动装箱缓存
 ```
 
 

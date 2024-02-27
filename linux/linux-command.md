@@ -256,7 +256,7 @@ scp root@ip:/path /localPath
 
 ```shell
 #!/bin/sh
-read name 
+read name
 echo "$name It is a test"
 ```
 
@@ -531,6 +531,18 @@ Linux/Unix 的文件调用权限分为三级 : 文件拥有者(User)、群组(Gr
   - 0表示：---属性，即rwx权限都取消
   - 000表示：文件拥有者(User)、群组(Group)、其他(Other)的rwx权限都取消
 - / 表示系统根目录，即从根目录开始
+
+#### chattr
+
+chattr +i /etc/passwd
+
+文件不能删除，不能更改，不能移动
+
+example:
+
+```bash
+chmod 000 devops.txt
+```
 
 ### tail
 
